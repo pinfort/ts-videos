@@ -1,0 +1,23 @@
+[versions]
+kotlin = "2.2.21"
+springboot = "4.0.4"
+kotest = "6.1.7"
+testcontainers = "2.0.4"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-plugin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring = { id = "org.springframework.boot", version.ref = "springboot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version = "1.1.7" }
+
+[libraries]
+kotest-runner-junit5 = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core", version.ref = "kotest" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.14.9" }
+
+testcontainers-core = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
+testcontainers-junit5 = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+testcontainers-mariadb = { group = "org.testcontainers", name = "mariadb", version.ref = "testcontainers" }
+testcontainers-spring-boot = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
+
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
