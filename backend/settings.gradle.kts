@@ -1,7 +1,7 @@
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
-rootProject.name = "ts-videos"
+rootProject.name = "tsvideos"
 
 include("core", "manager:infrastructure", "manager:console", "manager:api", "processor:infrastructure", "processor:console")
 
