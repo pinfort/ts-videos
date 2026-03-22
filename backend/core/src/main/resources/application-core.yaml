@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: ${DATABASE_CONNECTION:jdbc:mariadb://localhost:3306/test}
+    username: ${DATABASE_USER_NAME:test}
+    password: ${DATABASE_PASSWORD:test}
+    validationQuery: SELECT 1
+    testOnBorrow: true
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      pool-name: ConnectionPool
+      leakDetectionThreshold: 5000
+      connection-test-query: SELECT 1
+      minimum-idle: 5
+      maximum-pool-size: 10
+      auto-commit: false
+samba:
+  video-store-nas:
+    url: ${VIDEO_STORE_NAS_URL:smb://localhost:139/alice}
+    username: ${VIDEO_STORE_NAS_USERNAME:pinfort}
+    password: ${VIDEO_STORE_NAS_PASSWORD:password}
+  original-store-nas:
+    url: ${ORIGINAL_STORE_NAS_URL:smb://localhost:139/bob}
+    username: ${ORIGINAL_STORE_NAS_USERNAME:pinfort}
+    password: ${ORIGINAL_STORE_NAS_PASSWORD:password}
