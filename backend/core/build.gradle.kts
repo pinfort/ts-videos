@@ -30,7 +30,7 @@ dependencies {
 }
 
 kotlin {
-	jvmToolchain(24)
+	jvmToolchain(25)
 
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
