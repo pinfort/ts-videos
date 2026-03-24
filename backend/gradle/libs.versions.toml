@@ -23,3 +23,5 @@ testcontainers-mariadb = { group = "org.testcontainers", name = "mariadb", versi
 testcontainers-spring-boot = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+
+samba = { group = "eu.agno3.jcifs", name = "jcifs-ng", version = "2.1.10" }

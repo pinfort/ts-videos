@@ -11,6 +11,7 @@ version = "0.0.1-SNAPSHOT"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation(libs.samba)
 
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
