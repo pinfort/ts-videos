@@ -7,11 +7,11 @@ data class CreatedFileDto(
     val size: Long,
     val mime: String?,
     val encoding: String?,
-    val status: Status
+    val status: Status,
 ) {
     enum class Status {
         REGISTERED,
         ENCODE_SUCCESS,
-        FILE_MOVED
+        FILE_MOVED,
     }
 }

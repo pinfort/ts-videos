@@ -12,11 +12,11 @@ data class ExecutedFileDto(
     val title: String,
     val channelName: String,
     val duration: Double,
-    val status: Status
+    val status: Status,
 ) {
     enum class Status {
         REGISTERED,
         DROPCHECKED,
-        SPLITTED
+        SPLITTED,
     }
 }

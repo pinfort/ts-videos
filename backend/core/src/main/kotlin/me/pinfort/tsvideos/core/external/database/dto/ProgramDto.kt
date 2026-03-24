@@ -13,11 +13,11 @@ data class ProgramDto(
     val channel: String?,
     val title: String?,
     val channelName: String?,
-    val duration: Double?
+    val duration: Double?,
 ) {
     enum class Status {
         REGISTERED,
         COMPLETED,
-        ERROR
+        ERROR,
     }
 }

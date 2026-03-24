@@ -12,6 +12,7 @@ version = "0.0.1-SNAPSHOT"
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation(libs.samba)
+    implementation(libs.mybatis.spring.boot)
 
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
@@ -21,6 +22,7 @@ dependencies {
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.mockk)
+    testImplementation(libs.mybatis.spring.test)
 
     // testcontainers
     testImplementation(libs.testcontainers.core)

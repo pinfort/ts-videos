@@ -6,15 +6,11 @@ import kotlin.io.path.name
 
 @Component
 class DirectoryNameComponent(
-    private val normalizeComponent: NormalizeComponent
+    private val normalizeComponent: NormalizeComponent,
 ) {
-    fun indexDirectoryName(path: Path): String {
-        return programDirectoryName(path).take(1)
-    }
+    fun indexDirectoryName(path: Path): String = programDirectoryName(path).take(1)
 
-    fun programDirectoryName(path: Path): String {
-        return normalizeComponent.normalize(path.parent.name)
-    }
+    fun programDirectoryName(path: Path): String = normalizeComponent.normalize(path.parent.name)
 
     /**
      * @param path 現在のフルパス ex. example/f/foo/bar.m2ts
@@ -22,7 +18,10 @@ class DirectoryNameComponent(
      *
      * @return 置き換えたフルパス ex. example/h/hoge/bar.m2ts
      */
-    fun replaceWithGivenDirectoryName(path: Path, directoryName: String): Path {
+    fun replaceWithGivenDirectoryName(
+        path: Path,
+        directoryName: String,
+    ): Path {
         val normalizedProgramDirectoryName = normalizeComponent.normalize(directoryName)
         val normalizedIndexDirectoryName = normalizedProgramDirectoryName.take(1)
 

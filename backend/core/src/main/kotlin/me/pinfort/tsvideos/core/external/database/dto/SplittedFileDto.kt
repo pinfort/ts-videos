@@ -6,11 +6,11 @@ data class SplittedFileDto(
     val file: String,
     val size: Long,
     val duration: Double,
-    val status: Status
+    val status: Status,
 ) {
     enum class Status {
         REGISTERED,
         COMPRESS_SAVED,
-        ENCODE_TASK_ADDED
+        ENCODE_TASK_ADDED,
     }
 }

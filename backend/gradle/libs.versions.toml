@@ -4,6 +4,7 @@ springboot = "4.0.4"
 kotest = "6.1.7"
 testcontainers = "2.0.4"
 ktlint = "14.2.0"
+mybatis = "4.0.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -25,3 +26,6 @@ testcontainers-spring-boot = { group = "org.springframework.boot", name = "sprin
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 
 samba = { group = "eu.agno3.jcifs", name = "jcifs-ng", version = "2.1.10" }
+
+mybatis-spring-boot = { group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter", version.ref = "mybatis" }
+mybatis-spring-test = { group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter-test", version.ref = "mybatis" }
