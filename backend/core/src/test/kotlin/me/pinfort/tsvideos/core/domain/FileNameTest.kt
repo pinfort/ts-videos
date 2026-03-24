@@ -1,9 +1,9 @@
 package me.pinfort.tsvideos.core.domain
 
-import io.kotest.core.spec.style.Test
 import me.pinfort.tsvideos.core.exception.InvalidFileNameException
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class FileNameTest {

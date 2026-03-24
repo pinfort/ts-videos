@@ -1,6 +1,5 @@
 package me.pinfort.tsvideos.core.external.database.dto.converter
 
-import io.kotest.core.spec.style.Test
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -9,6 +8,7 @@ import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class ProgramConverterTest {

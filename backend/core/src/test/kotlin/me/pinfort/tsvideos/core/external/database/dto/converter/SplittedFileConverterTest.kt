@@ -1,6 +1,5 @@
 package me.pinfort.tsvideos.core.external.database.dto.converter
 
-import io.kotest.core.spec.style.Test
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -10,6 +9,7 @@ import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 
 class SplittedFileConverterTest {
     @MockK

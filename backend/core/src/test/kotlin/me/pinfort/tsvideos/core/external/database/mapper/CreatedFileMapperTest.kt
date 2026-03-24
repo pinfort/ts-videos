@@ -1,10 +1,10 @@
 package me.pinfort.tsvideos.core.external.database.mapper
 
-import io.kotest.core.spec.style.Test
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
