@@ -21,10 +21,13 @@ class ProgramStatusConverterTest {
     @CsvSource(
         "REGISTERED,REGISTERED",
         "COMPLETED,COMPLETED",
-        "ERROR,ERROR"
+        "ERROR,ERROR",
     )
     @ParameterizedTest
-    fun success(originalStatus: ProgramDto.Status, status: Program.Status) {
+    fun success(
+        originalStatus: ProgramDto.Status,
+        status: Program.Status,
+    ) {
         val actual = programStatusConverter.convert(originalStatus)
 
         Assertions.assertThat(actual).isEqualTo(status)

@@ -7,10 +7,10 @@ import java.time.LocalDateTime
 
 @Component
 class ProgramConverter(
-    private val programStatusConverter: ProgramStatusConverter
+    private val programStatusConverter: ProgramStatusConverter,
 ) {
-    fun convert(dto: ProgramDto): Program {
-        return Program(
+    fun convert(dto: ProgramDto): Program =
+        Program(
             id = dto.id,
             name = dto.name,
             executedFileId = dto.executedFileId,
@@ -21,7 +21,6 @@ class ProgramConverter(
             channel = dto.channel ?: "",
             title = dto.title ?: "",
             channelName = dto.channelName ?: "",
-            duration = dto.duration ?: -1.0
+            duration = dto.duration ?: -1.0,
         )
-    }
 }

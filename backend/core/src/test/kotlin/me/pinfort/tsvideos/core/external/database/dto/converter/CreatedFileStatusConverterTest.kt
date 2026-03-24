@@ -21,10 +21,13 @@ class CreatedFileStatusConverterTest {
     @CsvSource(
         "REGISTERED,REGISTERED",
         "ENCODE_SUCCESS,ENCODE_SUCCESS",
-        "FILE_MOVED,FILE_MOVED"
+        "FILE_MOVED,FILE_MOVED",
     )
     @ParameterizedTest
-    fun success(originalStatus: CreatedFileDto.Status, status: CreatedFile.Status) {
+    fun success(
+        originalStatus: CreatedFileDto.Status,
+        status: CreatedFile.Status,
+    ) {
         val actual = createdFileStatusConverter.convert(originalStatus)
 
         Assertions.assertThat(actual).isEqualTo(status)

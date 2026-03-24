@@ -18,14 +18,15 @@ class SplittedFileConverterTest {
     @InjectMockKs
     private lateinit var splittedFileConverter: SplittedFileConverter
 
-    private val dummySplittedFileDto = SplittedFileDto(
-        id = 1,
-        executedFileId = 2,
-        file = "filepath",
-        size = 3,
-        duration = 4.0,
-        status = SplittedFileDto.Status.REGISTERED
-    )
+    private val dummySplittedFileDto =
+        SplittedFileDto(
+            id = 1,
+            executedFileId = 2,
+            file = "filepath",
+            size = 3,
+            duration = 4.0,
+            status = SplittedFileDto.Status.REGISTERED,
+        )
 
     @BeforeEach
     fun setUp() {
@@ -40,14 +41,15 @@ class SplittedFileConverterTest {
 
             val actual = splittedFileConverter.convert(dummySplittedFileDto)
 
-            val expected = SplittedFile(
-                id = 1,
-                executedFileId = 2,
-                file = "filepath",
-                size = 3,
-                duration = 4.0,
-                status = SplittedFile.Status.REGISTERED
-            )
+            val expected =
+                SplittedFile(
+                    id = 1,
+                    executedFileId = 2,
+                    file = "filepath",
+                    size = 3,
+                    duration = 4.0,
+                    status = SplittedFile.Status.REGISTERED,
+                )
 
             Assertions.assertThat(actual).isEqualTo(expected)
         }

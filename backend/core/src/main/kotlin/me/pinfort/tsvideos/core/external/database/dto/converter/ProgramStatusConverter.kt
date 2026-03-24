@@ -6,11 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ProgramStatusConverter {
-    fun convert(dto: ProgramDto.Status): Program.Status {
-        return when (dto) {
+    fun convert(dto: ProgramDto.Status): Program.Status =
+        when (dto) {
             ProgramDto.Status.REGISTERED -> Program.Status.REGISTERED
             ProgramDto.Status.COMPLETED -> Program.Status.COMPLETED
             ProgramDto.Status.ERROR -> Program.Status.ERROR
         }
-    }
 }

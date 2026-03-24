@@ -6,16 +6,15 @@ import org.springframework.stereotype.Component
 
 @Component
 class SplittedFileConverter(
-    private val convertStatus: SplittedFileStatusConverter
+    private val convertStatus: SplittedFileStatusConverter,
 ) {
-    fun convert(dto: SplittedFileDto): SplittedFile {
-        return SplittedFile(
+    fun convert(dto: SplittedFileDto): SplittedFile =
+        SplittedFile(
             id = dto.id,
             executedFileId = dto.executedFileId,
             file = dto.file,
             size = dto.size,
             duration = dto.duration,
-            status = convertStatus.convert(dto.status)
+            status = convertStatus.convert(dto.status),
         )
-    }
 }

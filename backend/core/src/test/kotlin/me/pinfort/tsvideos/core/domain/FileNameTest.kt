@@ -18,8 +18,8 @@ class FileNameTest {
                     recordedAt = LocalDateTime.of(2023, 1, 2, 4, 5, 0),
                     channel = "GR99",
                     channelName = "てすと",
-                    title = "テスト番組[SV:KT][ID:9999].m2ts"
-                )
+                    title = "テスト番組[SV:KT][ID:9999].m2ts",
+                ),
             )
         }
 
@@ -32,17 +32,17 @@ class FileNameTest {
                     recordedAt = LocalDateTime.of(2023, 1, 2, 4, 5, 0),
                     channel = "GR99",
                     channelName = "てすと",
-                    title = "テ.m2ts"
-                )
+                    title = "テ.m2ts",
+                ),
             )
         }
 
         @Test
         fun failed() {
-            Assertions.assertThatThrownBy {
-                FileName.fromFileNameString("[230102-0405]テ.m2ts")
-            }
-                .isInstanceOf(InvalidFileNameException::class.java)
+            Assertions
+                .assertThatThrownBy {
+                    FileName.fromFileNameString("[230102-0405]テ.m2ts")
+                }.isInstanceOf(InvalidFileNameException::class.java)
                 .hasMessage("filename parsing error")
         }
     }
@@ -51,15 +51,16 @@ class FileNameTest {
     inner class ToFileNameStringTest {
         @Test
         fun success() {
-            val actual = FileName(
-                recordedAt = LocalDateTime.of(2023, 3, 4, 5, 6, 0),
-                channel = "BSBS_01",
-                channelName = "てすと2",
-                title = "テスト番組2[SV:YH][ID:9999].m2ts"
-            ).toFileNameString()
+            val actual =
+                FileName(
+                    recordedAt = LocalDateTime.of(2023, 3, 4, 5, 6, 0),
+                    channel = "BSBS_01",
+                    channelName = "てすと2",
+                    title = "テスト番組2[SV:YH][ID:9999].m2ts",
+                ).toFileNameString()
 
             Assertions.assertThat(actual).isEqualTo(
-                "[230304-0506][BSBS_01][てすと2]テスト番組2[SV:YH][ID:9999].m2ts"
+                "[230304-0506][BSBS_01][てすと2]テスト番組2[SV:YH][ID:9999].m2ts",
             )
         }
     }

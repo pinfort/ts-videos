@@ -14,5 +14,5 @@ data class ProgramDetail(
     val title: String,
     val channelName: String,
     val duration: Double,
-    val createdFiles: List<CreatedFile>
+    val createdFiles: List<CreatedFile>,
 )

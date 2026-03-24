@@ -27,21 +27,22 @@ class ProgramConverterTest {
     fun success() {
         every { programStatusConverter.convert(any()) } returns Program.Status.COMPLETED
 
-        val actual = programConverter.convert(
-            ProgramDto(
-                id = 1,
-                name = "2",
-                executedFileId = 3,
-                status = ProgramDto.Status.COMPLETED,
-                drops = 4,
-                size = 5,
-                recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
-                channel = "channel",
-                title = "title",
-                channelName = "channelName",
-                duration = 6.0
+        val actual =
+            programConverter.convert(
+                ProgramDto(
+                    id = 1,
+                    name = "2",
+                    executedFileId = 3,
+                    status = ProgramDto.Status.COMPLETED,
+                    drops = 4,
+                    size = 5,
+                    recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+                    channel = "channel",
+                    title = "title",
+                    channelName = "channelName",
+                    duration = 6.0,
+                ),
             )
-        )
 
         Assertions.assertThat(actual).isEqualTo(
             Program(
@@ -55,8 +56,8 @@ class ProgramConverterTest {
                 channel = "channel",
                 title = "title",
                 channelName = "channelName",
-                duration = 6.0
-            )
+                duration = 6.0,
+            ),
         )
     }
 }

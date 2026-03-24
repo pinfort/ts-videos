@@ -9,10 +9,13 @@ import java.time.LocalDateTime
 @Component
 class ProgramDetailConverter(
     private val programStatusConverter: ProgramStatusConverter,
-    private val createdFileConverter: CreatedFileConverter
+    private val createdFileConverter: CreatedFileConverter,
 ) {
-    fun convert(dto: ProgramDto, createdFiles: List<CreatedFileDto>): ProgramDetail {
-        return ProgramDetail(
+    fun convert(
+        dto: ProgramDto,
+        createdFiles: List<CreatedFileDto>,
+    ): ProgramDetail =
+        ProgramDetail(
             id = dto.id,
             name = dto.name,
             executedFileId = dto.executedFileId,
@@ -24,7 +27,6 @@ class ProgramDetailConverter(
             title = dto.title ?: "",
             channelName = dto.channelName ?: "",
             duration = dto.duration ?: -1.0,
-            createdFiles = createdFiles.map { createdFileConverter.convert(it) }
+            createdFiles = createdFiles.map { createdFileConverter.convert(it) },
         )
-    }
 }

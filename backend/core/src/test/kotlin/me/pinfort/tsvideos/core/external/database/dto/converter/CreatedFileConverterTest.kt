@@ -26,17 +26,18 @@ class CreatedFileConverterTest {
     fun success() {
         every { createdFileStatusConverter.convert(any()) } returns CreatedFile.Status.REGISTERED
 
-        val actual = createdFileConverter.convert(
-            CreatedFileDto(
-                id = 1,
-                splittedFileId = 2,
-                file = "file",
-                size = 3,
-                mime = "mime",
-                encoding = "encoding",
-                status = CreatedFileDto.Status.REGISTERED
+        val actual =
+            createdFileConverter.convert(
+                CreatedFileDto(
+                    id = 1,
+                    splittedFileId = 2,
+                    file = "file",
+                    size = 3,
+                    mime = "mime",
+                    encoding = "encoding",
+                    status = CreatedFileDto.Status.REGISTERED,
+                ),
             )
-        )
 
         Assertions.assertThat(actual).isEqualTo(
             CreatedFile(
@@ -46,8 +47,8 @@ class CreatedFileConverterTest {
                 size = 3,
                 mime = "mime",
                 encoding = "encoding",
-                status = CreatedFile.Status.REGISTERED
-            )
+                status = CreatedFile.Status.REGISTERED,
+            ),
         )
     }
 }

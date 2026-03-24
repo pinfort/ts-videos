@@ -21,10 +21,13 @@ class ExecutedFileStatusConverterTest {
     @CsvSource(
         "REGISTERED,REGISTERED",
         "DROPCHECKED,DROPCHECKED",
-        "SPLITTED,SPLITTED"
+        "SPLITTED,SPLITTED",
     )
     @ParameterizedTest
-    fun success(originalStatus: ExecutedFileDto.Status, status: ExecutedFile.Status) {
+    fun success(
+        originalStatus: ExecutedFileDto.Status,
+        status: ExecutedFile.Status,
+    ) {
         val actual = executedFileStatusConverter.convert(originalStatus)
 
         Assertions.assertThat(actual).isEqualTo(status)

@@ -6,17 +6,16 @@ import org.springframework.stereotype.Component
 
 @Component
 class CreatedFileConverter(
-    private val createdFileStatusConverter: CreatedFileStatusConverter
+    private val createdFileStatusConverter: CreatedFileStatusConverter,
 ) {
-    fun convert(dto: CreatedFileDto): CreatedFile {
-        return CreatedFile(
+    fun convert(dto: CreatedFileDto): CreatedFile =
+        CreatedFile(
             id = dto.id,
             splittedFileId = dto.splittedFileId,
             file = dto.file,
             size = dto.size,
             mime = dto.mime,
             encoding = dto.encoding,
-            status = createdFileStatusConverter.convert(dto.status)
+            status = createdFileStatusConverter.convert(dto.status),
         )
-    }
 }

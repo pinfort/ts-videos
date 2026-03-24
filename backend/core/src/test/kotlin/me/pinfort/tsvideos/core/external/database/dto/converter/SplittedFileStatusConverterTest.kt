@@ -25,9 +25,12 @@ class SplittedFileStatusConverterTest {
         @CsvSource(
             "REGISTERED, REGISTERED",
             "COMPRESS_SAVED, COMPRESS_SAVED",
-            "ENCODE_TASK_ADDED, ENCODE_TASK_ADDED"
+            "ENCODE_TASK_ADDED, ENCODE_TASK_ADDED",
         )
-        fun success(status: SplittedFileDto.Status, expected: SplittedFile.Status) {
+        fun success(
+            status: SplittedFileDto.Status,
+            expected: SplittedFile.Status,
+        ) {
             val actual = splittedFileStatusConverter.convert(status)
 
             Assertions.assertThat(actual).isEqualTo(expected)
