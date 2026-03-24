@@ -19,8 +19,8 @@ kotest-assertions-core = { group = "io.kotest", name = "kotest-assertions-core",
 mockk = { group = "io.mockk", name = "mockk", version = "1.14.9" }
 
 testcontainers-core = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
-testcontainers-junit5 = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
-testcontainers-mariadb = { group = "org.testcontainers", name = "mariadb", version.ref = "testcontainers" }
+testcontainers-junit5 = { group = "org.testcontainers", name = "testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-mariadb = { group = "org.testcontainers", name = "testcontainers-mariadb", version.ref = "testcontainers" }
 testcontainers-spring-boot = { group = "org.springframework.boot", name = "spring-boot-testcontainers" }
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
