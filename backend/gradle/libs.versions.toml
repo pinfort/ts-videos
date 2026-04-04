@@ -5,6 +5,7 @@ kotest = "6.1.7"
 testcontainers = "2.0.4"
 ktlint = "14.2.0"
 mybatis = "4.0.1"
+clikt = "5.0.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -29,3 +30,5 @@ samba = { group = "eu.agno3.jcifs", name = "jcifs-ng", version = "2.1.10" }
 
 mybatis-spring-boot = { group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter", version.ref = "mybatis" }
 mybatis-spring-test = { group = "org.mybatis.spring.boot", name = "mybatis-spring-boot-starter-test", version.ref = "mybatis" }
+
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
