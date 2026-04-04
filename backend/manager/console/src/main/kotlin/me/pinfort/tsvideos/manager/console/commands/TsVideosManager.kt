@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component
 @Component
 class TsVideosManager(
     // TODO
-): CliktCommand(name = "tvmcli") {
+) : CliktCommand(name = "tvmcli") {
     override fun run() = Unit
 }

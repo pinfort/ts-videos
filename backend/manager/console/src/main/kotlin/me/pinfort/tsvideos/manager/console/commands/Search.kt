@@ -12,13 +12,13 @@ import java.time.format.DateTimeFormatter
 @Component
 class Search(
     private val programCommand: ProgramCommand,
-    private val terminalTextColorComponent: TerminalTextColorComponent
+    private val terminalTextColorComponent: TerminalTextColorComponent,
 ) : CliktCommand() {
     override fun help(context: Context): String = "search programs"
 
     private val datetimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 
-    private val programSearchName by option("-n", "--name", help="ambiguous program name for search").required()
+    private val programSearchName by option("-n", "--name", help = "ambiguous program name for search").required()
 
     override fun run() {
         println("id\trecorded_at\t\tchannelName\t\tdrops\ttsExists\ttitle")
@@ -28,17 +28,27 @@ class Search(
             .sortedBy { it.recordedAt }
             .forEach {
                 val tsExists = programCommand.hasTsFile(it)
-                val programInfo = "%d\t%s\t%s\t%d\t%b\t%s".format(it.id, datetimeFormat.format(it.recordedAt), it.channelName, it.drops, tsExists, it.title)
+                val programInfo =
+                    "%d\t%s\t%s\t%d\t%b\t%s".format(
+                        it.id,
+                        datetimeFormat.format(it.recordedAt),
+                        it.channelName,
+                        it.drops,
+                        tsExists,
+                        it.title,
+                    )
                 val decoratedProgramInfo = decorateProgramInfo(it.drops, programInfo)
                 println(decoratedProgramInfo)
             }
     }
 
-    private fun decorateProgramInfo(drops: Int, programInfo: String): String {
-        return when {
+    private fun decorateProgramInfo(
+        drops: Int,
+        programInfo: String,
+    ): String =
+        when {
             drops == 0 -> programInfo
             drops > 0 -> terminalTextColorComponent.error(programInfo)
             else -> terminalTextColorComponent.info(programInfo)
         }
-    }
 }

@@ -18,7 +18,7 @@ import java.nio.file.Path
 class Modify(
     private val programCommand: ProgramCommand,
     private val directoryNameComponent: DirectoryNameComponent,
-    private val userQuestionComponent: UserQuestionComponent
+    private val userQuestionComponent: UserQuestionComponent,
 ) : CliktCommand() {
     override fun help(context: Context): String = "modify programs"
 
@@ -28,7 +28,7 @@ class Modify(
     private val dryRun by option("-d", "--dryRun").boolean().default(false)
 
     enum class TargetType {
-        DIRECTORY_NAME
+        DIRECTORY_NAME,
     }
 
     override fun run() {

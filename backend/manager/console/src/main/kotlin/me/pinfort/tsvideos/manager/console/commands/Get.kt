@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 class Get(
     private val programCommand: ProgramCommand,
     private val executedFileCommand: ExecutedFileCommand,
-    private val programDetailToTextComponent: ProgramDetailToTextComponent
+    private val programDetailToTextComponent: ProgramDetailToTextComponent,
 ) : CliktCommand() {
     override fun help(context: Context): String = "get resources"
 
@@ -22,7 +22,7 @@ class Get(
 
     enum class ResourceType {
         PROGRAM,
-        EXECUTED_FILE
+        EXECUTED_FILE,
     }
 
     override fun run() {

@@ -8,13 +8,13 @@ import org.springframework.boot.runApplication
     scanBasePackages = [
         "me.pinfort.tsvideos.core",
         "me.pinfort.tsvideos.manager",
-    ]
+    ],
 )
 @ConfigurationPropertiesScan(
     basePackages = [
         "me.pinfort.tsvideos.core.config",
         "me.pinfort.tsvideos.manager.infrastructure.config",
-    ]
+    ],
 )
 class ConsoleApplication
 

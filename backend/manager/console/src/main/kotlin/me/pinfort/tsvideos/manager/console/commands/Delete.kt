@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 class Delete(
     private val programCommand: ProgramCommand,
     private val userQuestionComponent: UserQuestionComponent,
-    private val createdFileCommand: CreatedFileCommand
+    private val createdFileCommand: CreatedFileCommand,
 ) : CliktCommand() {
     override fun help(context: Context): String = "delete resources"
 
@@ -28,7 +28,7 @@ class Delete(
 
     enum class TargetType {
         PROGRAM,
-        TS_FILES
+        TS_FILES,
     }
 
     override fun run() {
