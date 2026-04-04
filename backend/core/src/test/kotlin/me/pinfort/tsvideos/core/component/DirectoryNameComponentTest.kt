@@ -1,60 +1,42 @@
 package me.pinfort.tsvideos.core.component
 
-import io.mockk.MockKAnnotations
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import io.mockk.mockk
 import java.nio.file.Path
 
-class DirectoryNameComponentTest {
-    @MockK
-    private lateinit var normalizeComponent: NormalizeComponent
+class DirectoryNameComponentTest : ExpectSpec({
+    val normalizeComponent = mockk<NormalizeComponent>()
+    val directoryNameComponent = DirectoryNameComponent(normalizeComponent)
 
-    @InjectMockKs
-    private lateinit var directoryNameComponent: DirectoryNameComponent
-
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this)
-    }
-
-    @Nested
-    inner class IndexDirectoryName {
-        @Test
-        fun success() {
+    context("indexDirectoryName") {
+        expect("success") {
             every { normalizeComponent.normalize("かきくけこ") } returns "さしすせそ"
 
             val result = directoryNameComponent.indexDirectoryName(Path.of("あいうえお/かきくけこ/てすとvideofile.m2ts"))
 
-            Assertions.assertThat(result).isEqualTo("さ")
+            result shouldBe "さ"
         }
     }
 
-    @Nested
-    inner class ProgramDirectoryName {
-        @Test
-        fun success() {
+    context("programDirectoryName") {
+        expect("success") {
             every { normalizeComponent.normalize("かきくけこ") } returns "さしすせそ"
 
             val result = directoryNameComponent.programDirectoryName(Path.of("あいうえお/かきくけこ/てすとvideofile.m2ts"))
 
-            Assertions.assertThat(result).isEqualTo("さしすせそ")
+            result shouldBe "さしすせそ"
         }
     }
 
-    @Nested
-    inner class ReplaceWithGivenDirectoryName {
-        @Test
-        fun success() {
+    context("replaceWithGivenDirectoryName") {
+        expect("success") {
             every { normalizeComponent.normalize("ほげ") } returns "ほげ"
 
             val result = directoryNameComponent.replaceWithGivenDirectoryName(Path.of("あいうえお/かきくけこ/さしすせそ/てすとvideofile.m2ts"), "ほげ")
 
-            Assertions.assertThat(result).isEqualTo(Path.of("あいうえお/ほ/ほげ/てすとvideofile.m2ts"))
+            result shouldBe Path.of("あいうえお/ほ/ほげ/てすとvideofile.m2ts")
         }
     }
-}
+})

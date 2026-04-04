@@ -1,11 +1,12 @@
 package me.pinfort.tsvideos.core.command
 
-import io.mockk.MockKAnnotations
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import me.pinfort.tsvideos.core.component.DirectoryNameComponent
@@ -25,164 +26,133 @@ import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import me.pinfort.tsvideos.core.external.samba.SambaClient
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import java.nio.file.Path
 import java.time.LocalDateTime
 
-class ProgramCommandTest {
-    @MockK
-    private lateinit var programMapper: ProgramMapper
+class ProgramCommandTest : ExpectSpec({
+    val programMapper = mockk<ProgramMapper>()
+    val programConverter = mockk<ProgramConverter>()
+    val createdFileMapper = mockk<CreatedFileMapper>()
+    val createdFileConverter = mockk<CreatedFileConverter>()
+    val programDetailConverter = mockk<ProgramDetailConverter>()
+    val executedFileCommand = mockk<ExecutedFileCommand>()
+    val createdFileCommand = mockk<CreatedFileCommand>()
+    val splittedFileMapper = mockk<SplittedFileMapper>()
+    val logger = mockk<Logger>()
+    val splittedFileCommand = mockk<SplittedFileCommand>()
+    val splittedFileConverter = mockk<SplittedFileConverter>()
+    val directoryNameComponent = mockk<DirectoryNameComponent>()
+    val programCommand = ProgramCommand(
+        programMapper,
+        programConverter,
+        createdFileMapper,
+        createdFileConverter,
+        programDetailConverter,
+        executedFileCommand,
+        createdFileCommand,
+        splittedFileMapper,
+        logger,
+        splittedFileCommand,
+        splittedFileConverter,
+        directoryNameComponent,
+    )
 
-    @MockK
-    private lateinit var programConverter: ProgramConverter
+    val program = Program(
+        id = 1,
+        name = "name",
+        executedFileId = 2,
+        status = Program.Status.COMPLETED,
+        drops = 3,
+        size = 4,
+        recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+        channel = "channel",
+        title = "title",
+        channelName = "channelName",
+        duration = 5.0,
+    )
+    val programDto = ProgramDto(
+        id = 1,
+        name = "name",
+        executedFileId = 2,
+        status = ProgramDto.Status.COMPLETED,
+        drops = 3,
+        size = 4,
+        recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+        channel = "channel",
+        title = "title",
+        channelName = "channelName",
+        duration = 5.0,
+    )
+    val createdFileDto = CreatedFileDto(
+        id = 1,
+        splittedFileId = 2,
+        file = "file",
+        size = 3,
+        mime = "mime",
+        encoding = "encoding",
+        status = CreatedFileDto.Status.ENCODE_SUCCESS,
+    )
+    val createdFile = CreatedFile(
+        id = 1,
+        splittedFileId = 2,
+        file = "file\\file1",
+        size = 3,
+        mime = "mime",
+        encoding = "encoding",
+        status = CreatedFile.Status.ENCODE_SUCCESS,
+    )
+    val programDetail = ProgramDetail(
+        id = 1,
+        name = "name",
+        executedFileId = 2,
+        status = Program.Status.COMPLETED,
+        drops = 3,
+        size = 4,
+        recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+        channel = "channel",
+        title = "title",
+        channelName = "channelName",
+        duration = 5.0,
+        createdFiles = listOf(createdFile),
+    )
+    val executedFile = ExecutedFile(
+        id = 1,
+        status = ExecutedFile.Status.REGISTERED,
+        size = 2,
+        recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
+        channel = "channel",
+        title = "title",
+        channelName = "channelName",
+        duration = 3.0,
+        drops = 4,
+        file = "file",
+    )
+    val splittedFileDto = SplittedFileDto(
+        id = 1,
+        executedFileId = 2,
+        file = "file",
+        size = 3,
+        status = SplittedFileDto.Status.REGISTERED,
+        duration = 4.0,
+    )
+    val splittedFile = SplittedFile(
+        id = 1,
+        executedFileId = 2,
+        file = "file",
+        size = 3,
+        status = SplittedFile.Status.REGISTERED,
+        duration = 4.0,
+    )
 
-    @MockK
-    private lateinit var createdFileMapper: CreatedFileMapper
-
-    @MockK
-    private lateinit var createdFileConverter: CreatedFileConverter
-
-    @MockK
-    private lateinit var programDetailConverter: ProgramDetailConverter
-
-    @MockK
-    private lateinit var executedFileCommand: ExecutedFileCommand
-
-    @MockK
-    private lateinit var createdFileCommand: CreatedFileCommand
-
-    @MockK
-    private lateinit var splittedFileMapper: SplittedFileMapper
-
-    @MockK
-    private lateinit var logger: Logger
-
-    @MockK
-    private lateinit var splittedFileCommand: SplittedFileCommand
-
-    @MockK
-    private lateinit var splittedFileConverter: SplittedFileConverter
-
-    @MockK
-    private lateinit var directoryNameComponent: DirectoryNameComponent
-
-    @InjectMockKs
-    private lateinit var programCommand: ProgramCommand
-
-    private val program =
-        Program(
-            id = 1,
-            name = "name",
-            executedFileId = 2,
-            status = Program.Status.COMPLETED,
-            drops = 3,
-            size = 4,
-            recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
-            channel = "channel",
-            title = "title",
-            channelName = "channelName",
-            duration = 5.0,
-        )
-    private val programDto =
-        ProgramDto(
-            id = 1,
-            name = "name",
-            executedFileId = 2,
-            status = ProgramDto.Status.COMPLETED,
-            drops = 3,
-            size = 4,
-            recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
-            channel = "channel",
-            title = "title",
-            channelName = "channelName",
-            duration = 5.0,
-        )
-    private val createdFileDto =
-        CreatedFileDto(
-            id = 1,
-            splittedFileId = 2,
-            file = "file",
-            size = 3,
-            mime = "mime",
-            encoding = "encoding",
-            status = CreatedFileDto.Status.ENCODE_SUCCESS,
-        )
-    private val createdFile =
-        CreatedFile(
-            id = 1,
-            splittedFileId = 2,
-            file = "file\\file1",
-            size = 3,
-            mime = "mime",
-            encoding = "encoding",
-            status = CreatedFile.Status.ENCODE_SUCCESS,
-        )
-    private val programDetail =
-        ProgramDetail(
-            id = 1,
-            name = "name",
-            executedFileId = 2,
-            status = Program.Status.COMPLETED,
-            drops = 3,
-            size = 4,
-            recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
-            channel = "channel",
-            title = "title",
-            channelName = "channelName",
-            duration = 5.0,
-            createdFiles = listOf(createdFile),
-        )
-    val executedFile =
-        ExecutedFile(
-            id = 1,
-            status = ExecutedFile.Status.REGISTERED,
-            size = 2,
-            recordedAt = LocalDateTime.of(2020, 1, 1, 0, 0, 0),
-            channel = "channel",
-            title = "title",
-            channelName = "channelName",
-            duration = 3.0,
-            drops = 4,
-            file = "file",
-        )
-    val splittedFileDto =
-        SplittedFileDto(
-            id = 1,
-            executedFileId = 2,
-            file = "file",
-            size = 3,
-            status = SplittedFileDto.Status.REGISTERED,
-            duration = 4.0,
-        )
-    val splittedFile =
-        SplittedFile(
-            id = 1,
-            executedFileId = 2,
-            file = "file",
-            size = 3,
-            status = SplittedFile.Status.REGISTERED,
-            duration = 4.0,
-        )
-
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this)
-    }
-
-    @Nested
-    inner class SelectByName {
-        @Test
-        fun success() {
+    context("selectByName") {
+        expect("success") {
             every { programMapper.selectByName(any(), any(), any()) } returns listOf(programDto)
             every { programConverter.convert(any()) } returns program
 
             val actual = programCommand.selectByName("test", 1, 2)
 
-            Assertions.assertThat(actual).isEqualTo(listOf(program))
+            actual shouldBe listOf(program)
 
             verifySequence {
                 programMapper.selectByName("test", 1, 2)
@@ -190,13 +160,12 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun noHit() {
+        expect("noHit") {
             every { programMapper.selectByName(any(), any(), any()) } returns emptyList()
 
             val actual = programCommand.selectByName("test", 1, 2)
 
-            Assertions.assertThat(actual).isEmpty()
+            actual shouldBe emptyList()
 
             verifySequence {
                 programMapper.selectByName("test", 1, 2)
@@ -204,16 +173,14 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class Find {
-        @Test
-        fun success() {
+    context("find") {
+        expect("success") {
             every { programMapper.find(any()) } returns programDto
             every { programConverter.convert(any()) } returns program
 
             val actual = programCommand.find(1)
 
-            Assertions.assertThat(actual).isEqualTo(program)
+            actual shouldBe program
 
             verifySequence {
                 programMapper.find(1)
@@ -221,13 +188,12 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun noHit() {
+        expect("noHit") {
             every { programMapper.find(any()) } returns null
 
             val actual = programCommand.find(1)
 
-            Assertions.assertThat(actual).isNull()
+            actual shouldBe null
 
             verifySequence {
                 programMapper.find(1)
@@ -235,21 +201,16 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class VideoFiles {
-        @Test
-        fun success() {
+    context("videoFiles") {
+        expect("success") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
             every { createdFileConverter.convert(any()) } returns createdFile
 
-            val testProgram =
-                program.copy(
-                    executedFileId = 1,
-                )
+            val testProgram = program.copy(executedFileId = 1)
 
             val actual = programCommand.videoFiles(testProgram)
 
-            Assertions.assertThat(actual).isEqualTo(listOf(createdFile))
+            actual shouldBe listOf(createdFile)
 
             verifySequence {
                 createdFileMapper.selectByExecutedFileId(1)
@@ -257,18 +218,14 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun noHit() {
+        expect("noHit") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns emptyList()
 
-            val testProgram =
-                program.copy(
-                    executedFileId = 1,
-                )
+            val testProgram = program.copy(executedFileId = 1)
 
             val actual = programCommand.videoFiles(testProgram)
 
-            Assertions.assertThat(actual).isEmpty()
+            actual shouldBe emptyList()
 
             verifySequence {
                 createdFileMapper.selectByExecutedFileId(1)
@@ -276,35 +233,31 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class HasTs {
-        @Test
-        fun success() {
+    context("hasTsFile") {
+        expect("success") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
             every { createdFileConverter.convert(any()).isTs } returns true
 
             val actual = programCommand.hasTsFile(program)
 
-            Assertions.assertThat(actual).isTrue
+            actual shouldBe true
         }
 
-        @Test
-        fun successNoTs() {
+        expect("successNoTs") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
             every { createdFileConverter.convert(any()).isTs } returns false
 
             val actual = programCommand.hasTsFile(program)
 
-            Assertions.assertThat(actual).isFalse
+            actual shouldBe false
         }
 
-        @Test
-        fun successNoResult() {
+        expect("successNoResult") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf()
 
             val actual = programCommand.hasTsFile(program)
 
-            Assertions.assertThat(actual).isFalse
+            actual shouldBe false
 
             verify(exactly = 0) {
                 createdFileConverter.convert(any())
@@ -312,17 +265,15 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class FindDetailTest {
-        @Test
-        fun success() {
+    context("findDetail") {
+        expect("success") {
             every { programMapper.find(any()) } returns programDto
             every { programDetailConverter.convert(any(), any()) } returns programDetail
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
 
             val actual = programCommand.findDetail(1)
 
-            Assertions.assertThat(actual).isEqualTo(programDetail)
+            actual shouldBe programDetail
 
             verifySequence {
                 programMapper.find(1)
@@ -330,13 +281,12 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun noHit() {
+        expect("noHit") {
             every { programMapper.find(any()) } returns null
 
             val actual = programCommand.findDetail(1)
 
-            Assertions.assertThat(actual).isNull()
+            actual shouldBe null
 
             verifySequence {
                 programMapper.find(1)
@@ -344,10 +294,8 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class DeleteTest {
-        @Test
-        fun success() {
+    context("delete") {
+        expect("success") {
             every { executedFileCommand.find(any()) } returns executedFile
             every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
@@ -375,23 +323,20 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun executedNotFound() {
+        expect("executedNotFound") {
             every { executedFileCommand.find(any()) } throws Exception("not found")
 
-            Assertions
-                .assertThatThrownBy {
-                    programCommand.delete(program)
-                }.hasMessage("not found")
-                .isInstanceOf(Exception::class.java)
+            val ex = shouldThrow<Exception> {
+                programCommand.delete(program)
+            }
+            ex.message shouldBe "not found"
 
             verifySequence {
                 executedFileCommand.find(program.executedFileId)
             }
         }
 
-        @Test
-        fun dryRun() {
+        expect("dryRun") {
             every { executedFileCommand.find(any()) } returns executedFile
             every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
@@ -421,8 +366,7 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun exception() {
+        expect("exception") {
             every { executedFileCommand.find(any()) } returns executedFile
             every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
@@ -434,10 +378,9 @@ class ProgramCommandTest {
             every { executedFileCommand.delete(any(), any()) } just Runs
             every { programMapper.deleteById(any()) } just Runs
 
-            Assertions
-                .assertThatThrownBy {
-                    programCommand.delete(program, true)
-                }.isInstanceOf(RuntimeException::class.java)
+            shouldThrow<RuntimeException> {
+                programCommand.delete(program, true)
+            }
 
             verifySequence {
                 executedFileCommand.find(program.executedFileId)
@@ -456,10 +399,8 @@ class ProgramCommandTest {
         }
     }
 
-    @Nested
-    inner class MoveCreatedFilesTest {
-        @Test
-        fun success() {
+    context("moveCreatedFiles") {
+        expect("success") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
             every { createdFileConverter.convert(any()) } returns createdFile
             every { createdFileCommand.move(any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
@@ -476,8 +417,7 @@ class ProgramCommandTest {
             }
         }
 
-        @Test
-        fun dryRun() {
+        expect("dryRun") {
             every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
             every { createdFileConverter.convert(any()) } returns createdFile
             every { createdFileCommand.move(any(), any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
@@ -494,4 +434,4 @@ class ProgramCommandTest {
             }
         }
     }
-}
+})

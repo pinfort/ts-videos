@@ -1,38 +1,27 @@
 package me.pinfort.tsvideos.core.command
 
-import io.mockk.MockKAnnotations
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import me.pinfort.tsvideos.core.domain.ExecutedFile
 import me.pinfort.tsvideos.core.external.database.dto.ExecutedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.converter.ExecutedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.ExecutedFileMapper
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import java.time.LocalDateTime
 
-class ExecutedFileCommandTest {
-    @MockK
-    private lateinit var executedFileMapper: ExecutedFileMapper
+class ExecutedFileCommandTest : ExpectSpec({
+    lateinit var executedFileMapper: ExecutedFileMapper
+    lateinit var executedFileConverter: ExecutedFileConverter
+    lateinit var logger: Logger
+    lateinit var executedFileCommand: ExecutedFileCommand
 
-    @MockK
-    private lateinit var executedFileConverter: ExecutedFileConverter
-
-    @MockK
-    private lateinit var logger: Logger
-
-    @InjectMockKs
-    private lateinit var executedFileCommand: ExecutedFileCommand
-
-    private val executedFileDto =
+    val executedFileDto =
         ExecutedFileDto(
             id = 1,
             file = "file",
@@ -46,7 +35,7 @@ class ExecutedFileCommandTest {
             status = ExecutedFileDto.Status.SPLITTED,
         )
 
-    private val executedFile =
+    val executedFile =
         ExecutedFile(
             id = 1,
             file = "file",
@@ -60,21 +49,19 @@ class ExecutedFileCommandTest {
             status = ExecutedFile.Status.SPLITTED,
         )
 
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this)
+    beforeTest {
+        executedFileMapper = mockk()
+        executedFileConverter = mockk()
+        logger = mockk()
+        executedFileCommand = ExecutedFileCommand(executedFileMapper, executedFileConverter, logger)
     }
 
-    @Nested
-    inner class FindTest {
-        @Test
-        fun success() {
+    context("find") {
+        expect("success") {
             every { executedFileMapper.find(any()) } returns executedFileDto
             every { executedFileConverter.convert(any()) } returns executedFile
 
-            val actual = executedFileCommand.find(1)
-
-            Assertions.assertThat(actual).isEqualTo(executedFile)
+            executedFileCommand.find(1) shouldBe executedFile
 
             verifySequence {
                 executedFileMapper.find(1)
@@ -82,13 +69,10 @@ class ExecutedFileCommandTest {
             }
         }
 
-        @Test
-        fun isNull() {
+        expect("isNull") {
             every { executedFileMapper.find(any()) } returns null
 
-            val actual = executedFileCommand.find(1)
-
-            Assertions.assertThat(actual).isNull()
+            executedFileCommand.find(1) shouldBe null
 
             verifySequence {
                 executedFileMapper.find(1)
@@ -99,23 +83,8 @@ class ExecutedFileCommandTest {
         }
     }
 
-    @Nested
-    inner class DeleteTest {
-        @Test
-        fun success() {
-            val executedFile =
-                ExecutedFile(
-                    id = 1,
-                    file = "file",
-                    drops = 2,
-                    size = 3,
-                    recordedAt = LocalDateTime.MIN,
-                    channel = "channel",
-                    title = "title",
-                    channelName = "channelName",
-                    duration = 4.0,
-                    status = ExecutedFile.Status.SPLITTED,
-                )
+    context("delete") {
+        expect("success") {
             every { executedFileMapper.delete(any()) } just Runs
             every { logger.info(any()) } just Runs
 
@@ -127,21 +96,7 @@ class ExecutedFileCommandTest {
             }
         }
 
-        @Test
-        fun dryRun() {
-            val executedFile =
-                ExecutedFile(
-                    id = 1,
-                    file = "file",
-                    drops = 2,
-                    size = 3,
-                    recordedAt = LocalDateTime.MIN,
-                    channel = "channel",
-                    title = "title",
-                    channelName = "channelName",
-                    duration = 4.0,
-                    status = ExecutedFile.Status.SPLITTED,
-                )
+        expect("dryRun") {
             every { logger.info(any()) } just Runs
 
             executedFileCommand.delete(executedFile, true)
@@ -154,4 +109,4 @@ class ExecutedFileCommandTest {
             }
         }
     }
-}
+})
