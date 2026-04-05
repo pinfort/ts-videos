@@ -24,7 +24,7 @@ class Delete(
 
     private val targetType by argument("targetType", "type of target resource").enum<TargetType>()
     private val ids by argument("ids", "ids of resource to delete. if ts_files, program id.").int().multiple()
-    private val dryRun by option("dryRun", "d").boolean().default(false)
+    private val dryRun by option("-d", "--dry-run").boolean().default(false)
 
     enum class TargetType {
         PROGRAM,

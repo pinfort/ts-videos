@@ -1,14 +1,16 @@
 package me.pinfort.tsvideos.core.external.database.mapper
 
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
 import org.springframework.boot.testcontainers.context.ImportTestcontainers
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig
 import java.time.LocalDateTime
 import javax.sql.DataSource
@@ -17,359 +19,336 @@ import javax.sql.DataSource
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @MybatisTest
 @SpringJUnitConfig
-class ProgramMapperTest {
+@ActiveProfiles("infrastructure")
+@ApplyExtension(SpringExtension::class)
+class ProgramMapperTest : ExpectSpec() {
     @Autowired
     private lateinit var dataSource: DataSource
 
     @Autowired
     private lateinit var programMapper: ProgramMapper
 
-    @BeforeEach
-    fun setup() {
-    }
+    init {
+        context("selectByName") {
+            expect("single") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection.commit()
 
-    @Nested
-    inner class SelectByNameTest {
-        @Test
-        fun single() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                    INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
-                    VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
-                    """.trimIndent(),
-                ).execute()
-            connection.commit()
+                val actual = programMapper.selectByName("test")
+                connection.close()
 
-            val actual = programMapper.selectByName("test")
-            connection.close()
+                actual shouldHaveSize 1
+                actual[0] shouldBe
+                    ProgramDto(
+                        1,
+                        "test",
+                        1,
+                        ProgramDto.Status.REGISTERED,
+                        0,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+            }
 
-            Assertions.assertThat(actual.size).isEqualTo(1)
+            expect("multiple") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'atest',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'testa',3,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(2,'filepath2',100,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection.commit()
 
-            Assertions.assertThat(actual[0]).isEqualTo(
-                ProgramDto(
-                    1,
-                    "test",
-                    1,
-                    ProgramDto.Status.REGISTERED,
-                    0,
-                    2,
-                    LocalDateTime.of(2009, 8, 3, 23, 58, 1),
-                    "BSxx",
-                    "myTitle",
-                    "myChannel",
-                    3.0,
-                ),
-            )
+                val actual = programMapper.selectByName("test")
+                connection.close()
+
+                actual shouldHaveSize 3
+                actual[0] shouldBe
+                    ProgramDto(
+                        1,
+                        "test",
+                        1,
+                        ProgramDto.Status.REGISTERED,
+                        0,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+                actual[1] shouldBe
+                    ProgramDto(
+                        2,
+                        "atest",
+                        2,
+                        ProgramDto.Status.REGISTERED,
+                        100,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+                actual[2] shouldBe
+                    ProgramDto(
+                        3,
+                        "testa",
+                        3,
+                        ProgramDto.Status.REGISTERED,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                    )
+            }
+
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection.commit()
+
+                val actual = programMapper.selectByName("test")
+                connection.close()
+
+                actual shouldHaveSize 0
+            }
         }
 
-        @Test
-        fun multiple() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'atest',2,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'testa',3,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                    INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
-                    VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
-                    """.trimIndent(),
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                    INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
-                    VALUES(2,'filepath2',100,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
-                    """.trimIndent(),
-                ).execute()
-            connection.commit()
+        context("find") {
+            expect("single") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection.commit()
 
-            val actual = programMapper.selectByName("test")
-            connection.close()
+                val actual = programMapper.find(1)
+                connection.close()
 
-            Assertions.assertThat(actual.size).isEqualTo(3)
+                actual shouldBe
+                    ProgramDto(
+                        1,
+                        "test",
+                        1,
+                        ProgramDto.Status.REGISTERED,
+                        0,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+            }
 
-            Assertions.assertThat(actual[0]).isEqualTo(
-                ProgramDto(
-                    1,
-                    "test",
-                    1,
-                    ProgramDto.Status.REGISTERED,
-                    0,
-                    2,
-                    LocalDateTime.of(2009, 8, 3, 23, 58, 1),
-                    "BSxx",
-                    "myTitle",
-                    "myChannel",
-                    3.0,
-                ),
-            )
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection.commit()
 
-            Assertions.assertThat(actual[1]).isEqualTo(
-                ProgramDto(
-                    2,
-                    "atest",
-                    2,
-                    ProgramDto.Status.REGISTERED,
-                    100,
-                    2,
-                    LocalDateTime.of(2009, 8, 3, 23, 58, 1),
-                    "BSxx",
-                    "myTitle",
-                    "myChannel",
-                    3.0,
-                ),
-            )
+                val actual = programMapper.find(1)
+                connection.close()
 
-            Assertions.assertThat(actual[2]).isEqualTo(
-                ProgramDto(
-                    3,
-                    "testa",
-                    3,
-                    ProgramDto.Status.REGISTERED,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                ),
-            )
+                actual shouldBe null
+            }
         }
 
-        @Test
-        fun none() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection.commit()
+        context("deleteById") {
+            expect("one") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
 
-            val actual = programMapper.selectByName("test")
-            connection.close()
+                programMapper.deleteById(1)
 
-            Assertions.assertThat(actual.size).isEqualTo(0)
-        }
-    }
+                programMapper.find(1) shouldBe null
+                connection.close()
+            }
 
-    @Nested
-    inner class FindTest {
-        @Test
-        fun single() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                    INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
-                    VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
-                    """.trimIndent(),
-                ).execute()
-            connection.commit()
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.commit()
 
-            val actual = programMapper.find(1)
-            connection.close()
+                programMapper.deleteById(1)
 
-            Assertions.assertThat(actual).isEqualTo(
-                ProgramDto(
-                    1,
-                    "test",
-                    1,
-                    ProgramDto.Status.REGISTERED,
-                    0,
-                    2,
-                    LocalDateTime.of(2009, 8, 3, 23, 58, 1),
-                    "BSxx",
-                    "myTitle",
-                    "myChannel",
-                    3.0,
-                ),
-            )
+                programMapper.find(1) shouldBe null
+                connection.close()
+            }
         }
 
-        @Test
-        fun none() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection.commit()
+        context("findByExecutedFileId") {
+            expect("single") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection.commit()
 
-            val actual = programMapper.find(1)
-            connection.close()
+                val actual = programMapper.findByExecutedFileId(1)
+                connection.close()
 
-            Assertions.assertThat(actual).isNull()
-        }
-    }
+                actual shouldBe
+                    ProgramDto(
+                        1,
+                        "test",
+                        1,
+                        ProgramDto.Status.REGISTERED,
+                        0,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+            }
 
-    @Nested
-    inner class DeleteByIdTest {
-        @Test
-        fun one() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
-            """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
-            """,
-                ).execute()
-            connection.commit()
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection.commit()
 
-            programMapper.deleteById(1)
+                val actual = programMapper.findByExecutedFileId(1)
+                connection.close()
 
-            Assertions.assertThat(programMapper.find(1)).isNull()
-            connection.close()
-        }
-
-        @Test
-        fun none() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.commit()
-
-            programMapper.deleteById(1)
-
-            Assertions.assertThat(programMapper.find(1)).isNull()
-            connection.close()
-        }
-    }
-
-    @Nested
-    inner class FindByExecutedFileIdTest {
-        @Test
-        fun single() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection
-                .prepareStatement(
-                    """
-            INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
-        """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-            INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
-        """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-            INSERT INTO program(id,name,executed_file_id,status) VALUES(3,'aest',3,'REGISTERED');
-        """,
-                ).execute()
-            connection
-                .prepareStatement(
-                    """
-                    INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
-                    VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
-                    """.trimIndent(),
-                ).execute()
-            connection.commit()
-
-            val actual = programMapper.findByExecutedFileId(1)
-            connection.close()
-
-            Assertions.assertThat(actual).isEqualTo(
-                ProgramDto(
-                    1,
-                    "test",
-                    1,
-                    ProgramDto.Status.REGISTERED,
-                    0,
-                    2,
-                    LocalDateTime.of(2009, 8, 3, 23, 58, 1),
-                    "BSxx",
-                    "myTitle",
-                    "myChannel",
-                    3.0,
-                ),
-            )
-        }
-
-        @Test
-        fun none() {
-            val connection = dataSource.connection
-            connection.prepareStatement("DELETE FROM program").execute()
-            connection.prepareStatement("DELETE FROM executed_file").execute()
-            connection.commit()
-
-            val actual = programMapper.findByExecutedFileId(1)
-            connection.close()
-
-            Assertions.assertThat(actual).isNull()
+                actual shouldBe null
+            }
         }
     }
 }

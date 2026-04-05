@@ -1,53 +1,36 @@
 package me.pinfort.tsvideos.core.external.shell
 
-import io.mockk.MockKAnnotations
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
-import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
 import me.pinfort.tsvideos.core.component.RunningPlatformComponent
 import me.pinfort.tsvideos.core.exception.InvalidEnvironmentException
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import java.io.File
 
-class ShellComponentTest {
-    @MockK
-    private lateinit var runningPlatformComponent: RunningPlatformComponent
+class ShellComponentTest :
+    ExpectSpec({
+        val runningPlatformComponent = mockk<RunningPlatformComponent>()
+        val shellClient = mockk<ShellClient>()
+        val shellComponent = ShellComponent(runningPlatformComponent, shellClient)
 
-    @MockK
-    private lateinit var shellClient: ShellClient
+        context("executeOnWindows") {
+            expect("success") {
+                every { runningPlatformComponent.runningOnWindows() } returns true
+                every { shellClient.execute(any(), any(), any()) } returns 1
 
-    @InjectMockKs
-    private lateinit var shellComponent: ShellComponent
+                shellComponent.executeOnWindows(File("."), "ls", 10) shouldBe 1
+            }
 
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this)
-    }
+            expect("failed") {
+                every { runningPlatformComponent.runningOnWindows() } returns false
 
-    @Nested
-    inner class ExecuteOnWindowsTest {
-        @Test
-        fun success() {
-            every { runningPlatformComponent.runningOnWindows() } returns true
-            every { shellClient.execute(any(), any(), any()) } returns 1
-
-            val actual = shellComponent.executeOnWindows(File("."), "ls", 10)
-
-            Assertions.assertThat(actual).isEqualTo(1)
+                val exception =
+                    shouldThrow<InvalidEnvironmentException> {
+                        shellComponent.executeOnWindows(File("."), "ls", 10)
+                    }
+                exception.message shouldBe "This function must be called on Windows only."
+            }
         }
-
-        @Test
-        fun failed() {
-            every { runningPlatformComponent.runningOnWindows() } returns false
-
-            Assertions
-                .assertThatThrownBy {
-                    shellComponent.executeOnWindows(File("."), "ls", 10)
-                }.isInstanceOf(InvalidEnvironmentException::class.java)
-                .hasMessage("This function must be called on Windows only.")
-        }
-    }
-}
+    })

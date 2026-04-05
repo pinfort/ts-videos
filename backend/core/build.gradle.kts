@@ -11,6 +11,7 @@ version = "0.0.1-SNAPSHOT"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(libs.samba)
     implementation(libs.mybatis.spring.boot)
 
@@ -21,6 +22,7 @@ dependencies {
     }
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotest.extensions.spring)
     testImplementation(libs.mockk)
     testImplementation(libs.mybatis.spring.test)
 

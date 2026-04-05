@@ -25,7 +25,7 @@ class Modify(
     private val id by argument("id", "id of resource").int()
     private val targetType by argument("targetType", "type of target resource").enum<TargetType>()
     private val newValue by argument("newValue", "new value of target resource")
-    private val dryRun by option("-d", "--dryRun").boolean().default(false)
+    private val dryRun by option("-d", "--dry-run").boolean().default(false)
 
     enum class TargetType {
         DIRECTORY_NAME,

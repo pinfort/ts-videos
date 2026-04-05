@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":manager:infrastructure"))
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation(libs.mybatis.spring.boot)
     implementation(libs.clikt)
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
