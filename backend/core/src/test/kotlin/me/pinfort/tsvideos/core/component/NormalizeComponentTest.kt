@@ -9,13 +9,13 @@ class NormalizeComponentTest : ExpectSpec({
     context("normalize") {
         expect("success") {
             normalizeComponent.normalize("\\/:*?\"<>|~‼０１２３４５６７８９ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ") shouldBe
-                "￥／：＊？"＜＞｜～!!0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                "￥／：＊？”＜＞｜～!!0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         }
     }
 
     context("normalizeSpecialCharacters") {
         expect("success") {
-            normalizeComponent.normalizeSpecialCharacters("\\/:*?\"<>|~‼") shouldBe "￥／：＊？"＜＞｜～!!"
+            normalizeComponent.normalizeSpecialCharacters("\\/:*?\"<>|~‼") shouldBe "￥／：＊？”＜＞｜～!!"
         }
     }
 
