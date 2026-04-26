@@ -18,6 +18,10 @@ import java.time.LocalDateTime
 
 class ModifyTest :
     ExpectSpec({
+        beforeTest {
+            clearAllMocks()
+        }
+
         val programCommand = mockk<ProgramCommand>()
         val directoryNameComponent = mockk<DirectoryNameComponent>()
         val userQuestionComponent = mockk<UserQuestionComponent>()
@@ -79,10 +83,4 @@ class ModifyTest :
                 }
             }
         }
-    }) {
-    init {
-        beforeTest {
-            clearAllMocks()
-        }
-    }
-}
+    })
