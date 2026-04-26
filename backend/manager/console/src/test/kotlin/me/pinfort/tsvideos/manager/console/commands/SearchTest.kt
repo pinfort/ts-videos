@@ -2,6 +2,7 @@ package me.pinfort.tsvideos.manager.console.commands
 
 import com.github.ajalt.clikt.core.main
 import io.kotest.core.spec.style.ExpectSpec
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import me.pinfort.tsvideos.core.command.ProgramCommand
@@ -11,6 +12,10 @@ import java.time.LocalDateTime
 
 class SearchTest :
     ExpectSpec({
+        beforeTest {
+            clearAllMocks()
+        }
+
         val programCommand = mockk<ProgramCommand>()
         val terminalTextColorComponent = mockk<TerminalTextColorComponent>()
         val search = Search(programCommand, terminalTextColorComponent)
