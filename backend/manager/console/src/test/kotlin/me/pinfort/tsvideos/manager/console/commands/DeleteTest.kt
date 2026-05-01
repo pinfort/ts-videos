@@ -19,14 +19,19 @@ import java.time.LocalDateTime
 
 class DeleteTest :
     ExpectSpec({
+        lateinit var programCommand: ProgramCommand
+        lateinit var userQuestionComponent: UserQuestionComponent
+        lateinit var createdFileCommand: CreatedFileCommand
+        lateinit var delete: Delete
+
         beforeTest {
             clearAllMocks()
-        }
 
-        val programCommand = mockk<ProgramCommand>()
-        val userQuestionComponent = mockk<UserQuestionComponent>()
-        val createdFileCommand = mockk<CreatedFileCommand>()
-        val delete = Delete(programCommand, userQuestionComponent, createdFileCommand)
+            programCommand = mockk()
+            userQuestionComponent = mockk()
+            createdFileCommand = mockk()
+            delete = Delete(programCommand, userQuestionComponent, createdFileCommand)
+        }
 
         val dummyProgram =
             Program(

@@ -11,18 +11,23 @@ import me.pinfort.tsvideos.core.domain.ExecutedFile
 import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.manager.console.component.ProgramDetailToTextComponent
+import me.pinfort.tsvideos.manager.console.component.ProgramDetailToTextComponentTest
 import java.time.LocalDateTime
 
 class GetTest :
     ExpectSpec({
+        lateinit var programCommand: ProgramCommand
+        lateinit var executedFileCommand: ExecutedFileCommand
+        lateinit var programDetailToTextComponent: ProgramDetailToTextComponent
+        lateinit var get: Get
+
         beforeTest {
             clearAllMocks()
+            programCommand = mockk()
+            executedFileCommand = mockk()
+            programDetailToTextComponent = mockk()
+            get = Get(programCommand, executedFileCommand, programDetailToTextComponent)
         }
-
-        val programCommand = mockk<ProgramCommand>()
-        val executedFileCommand = mockk<ExecutedFileCommand>()
-        val programDetailToTextComponent = mockk<ProgramDetailToTextComponent>()
-        val get = Get(programCommand, executedFileCommand, programDetailToTextComponent)
 
         val programDetail =
             ProgramDetail(

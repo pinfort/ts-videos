@@ -12,13 +12,17 @@ import java.time.LocalDateTime
 
 class SearchTest :
     ExpectSpec({
+        lateinit var programCommand: ProgramCommand
+        lateinit var terminalTextColorComponent: TerminalTextColorComponent
+        lateinit var search: Search
+
         beforeTest {
             clearAllMocks()
+            programCommand = mockk()
+            terminalTextColorComponent = mockk()
+            search = Search(programCommand, terminalTextColorComponent)
         }
 
-        val programCommand = mockk<ProgramCommand>()
-        val terminalTextColorComponent = mockk<TerminalTextColorComponent>()
-        val search = Search(programCommand, terminalTextColorComponent)
 
         val dummyProgram =
             Program(
