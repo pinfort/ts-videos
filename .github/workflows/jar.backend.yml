@@ -4,6 +4,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 defaults:
   run:
     working-directory: backend
@@ -21,7 +24,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: bootJar
-        run: ./gradlew manager:console:bootJar
+        run: ./gradlew manager:console:bootJar --no-daemon
       - name: upload jar
         uses: actions/upload-artifact@v4
         with:
