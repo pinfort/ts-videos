@@ -10,7 +10,6 @@ import org.springframework.util.MimeType
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import java.io.InputStream
 
 @RestController
 class VideoFileController(
@@ -23,10 +22,7 @@ class VideoFileController(
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.asMediaType(MimeType.valueOf("video/mp4"))
         val video =
-            createdFileCommand.streamCreatedFile(id) ?: return ResponseEntity(
-                InputStreamResource(InputStream.nullInputStream()),
-                HttpStatus.NOT_FOUND,
-            )
+            createdFileCommand.streamCreatedFile(id) ?: return ResponseEntity.notFound().build()
         return ResponseEntity(
             InputStreamResource(video.buffered()),
             responseHeaders,
