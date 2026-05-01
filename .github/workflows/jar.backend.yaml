@@ -28,6 +28,6 @@ jobs:
       - name: upload jar
         uses: actions/upload-artifact@v4
         with:
-          name: ts-videos-manager
+          name: ts-videos-manager-${{ github.sha }}
           path: backend/manager/console/build/libs/console.jar
-          retention-days: 5
+          retention-days: 30
