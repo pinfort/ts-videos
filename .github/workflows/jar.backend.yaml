@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'main'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,11 +24,18 @@ jobs:
           cache: 'gradle'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: test
+        env:
+          DATABASE_CONNECTION: jdbc:tc:mariadb:11.8:///?TC_INITSCRIPT=ddl/01_create_database.sql
+          DATABASE_USER_NAME: test
+          DATABASE_PASSWORD: test
+        run: ./gradlew test --no-daemon
       - name: bootJar
         run: ./gradlew manager:console:bootJar --no-daemon
       - name: upload jar
         uses: actions/upload-artifact@v4
         with:
           name: ts-videos-manager-${{ github.sha }}
-          path: backend/manager/console/build/libs/console.jar
+          path: backend/manager/console/build/libs/*.jar
+          if-no-files-found: error
           retention-days: 30
