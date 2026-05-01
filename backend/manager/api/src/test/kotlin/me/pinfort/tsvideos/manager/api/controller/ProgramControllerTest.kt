@@ -10,6 +10,7 @@ import me.pinfort.tsvideos.core.domain.ProgramDetail
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -59,9 +60,17 @@ class ProgramControllerTest : DescribeSpec() {
     init {
         describe("index") {
             it("success") {
-                every { programCommand.selectByName(any(), any(), any()) } returns listOf()
+                every { programCommand.selectByName("", 100, 0) } returns listOf()
                 mockMvc
                     .perform(get("/api/v1/programs"))
+                    .andDo(print())
+                    .andExpect(status().isOk)
+            }
+
+            it("success with parameters") {
+                every { programCommand.selectByName("foo", 10, 5) } returns listOf()
+                mockMvc
+                    .perform(get("/api/v1/programs").param("name", "foo").param("limit", "10").param("offset", "5"))
                     .andDo(print())
                     .andExpect(status().isOk)
             }
@@ -69,14 +78,42 @@ class ProgramControllerTest : DescribeSpec() {
 
         describe("detail") {
             it("success") {
-                every { programCommand.find(any()) } returns program
-                every { programCommand.findDetail(any()) } returns programDetail
-                every { programCommand.videoFiles(any()) } returns listOf()
+                every { programCommand.find(1L) } returns program
+                every { programCommand.findDetail(1L) } returns programDetail
+                every { programCommand.videoFiles(program) } returns listOf()
 
                 mockMvc
                     .perform(get("/api/v1/programs/1"))
                     .andDo(print())
                     .andExpect(status().isOk)
+            }
+
+            it("not found when find returns null") {
+                every { programCommand.find(1L) } returns null
+
+                mockMvc
+                    .perform(get("/api/v1/programs/1"))
+                    .andDo(print())
+                    .andExpect(status().isNotFound)
+            }
+
+            it("not found when findDetail returns null") {
+                every { programCommand.find(1L) } returns program
+                every { programCommand.findDetail(1L) } returns null
+
+                mockMvc
+                    .perform(get("/api/v1/programs/1"))
+                    .andDo(print())
+                    .andExpect(status().isNotFound)
+            }
+        }
+
+        describe("delete") {
+            it("not implemented") {
+                mockMvc
+                    .perform(delete("/api/v1/programs/1"))
+                    .andDo(print())
+                    .andExpect(status().isNotImplemented)
             }
         }
     }
