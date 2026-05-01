@@ -2,6 +2,7 @@ package me.pinfort.tsvideos.manager.console.commands
 
 import com.github.ajalt.clikt.core.main
 import io.kotest.core.spec.style.ExpectSpec
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import me.pinfort.tsvideos.core.command.ExecutedFileCommand
@@ -14,10 +15,18 @@ import java.time.LocalDateTime
 
 class GetTest :
     ExpectSpec({
-        val programCommand = mockk<ProgramCommand>()
-        val executedFileCommand = mockk<ExecutedFileCommand>()
-        val programDetailToTextComponent = mockk<ProgramDetailToTextComponent>()
-        val get = Get(programCommand, executedFileCommand, programDetailToTextComponent)
+        lateinit var programCommand: ProgramCommand
+        lateinit var executedFileCommand: ExecutedFileCommand
+        lateinit var programDetailToTextComponent: ProgramDetailToTextComponent
+        lateinit var get: Get
+
+        beforeTest {
+            clearAllMocks()
+            programCommand = mockk()
+            executedFileCommand = mockk()
+            programDetailToTextComponent = mockk()
+            get = Get(programCommand, executedFileCommand, programDetailToTextComponent)
+        }
 
         val programDetail =
             ProgramDetail(

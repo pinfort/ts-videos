@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -50,6 +51,7 @@ class CreatedFileCommandTest :
             )
 
         beforeTest {
+            clearAllMocks()
             createdFileMapper = mockk()
             createdFileConverter = mockk()
             sambaClient = mockk()
