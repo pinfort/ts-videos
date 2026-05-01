@@ -23,7 +23,6 @@ class SearchTest :
             search = Search(programCommand, terminalTextColorComponent)
         }
 
-
         val dummyProgram =
             Program(
                 id = 1,

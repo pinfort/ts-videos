@@ -11,7 +11,6 @@ import me.pinfort.tsvideos.core.domain.ExecutedFile
 import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.manager.console.component.ProgramDetailToTextComponent
-import me.pinfort.tsvideos.manager.console.component.ProgramDetailToTextComponentTest
 import java.time.LocalDateTime
 
 class GetTest :
