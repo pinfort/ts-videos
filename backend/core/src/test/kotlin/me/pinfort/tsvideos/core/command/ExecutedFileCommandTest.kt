@@ -3,6 +3,7 @@ package me.pinfort.tsvideos.core.command
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -51,6 +52,7 @@ class ExecutedFileCommandTest :
             )
 
         beforeTest {
+            clearAllMocks()
             executedFileMapper = mockk()
             executedFileConverter = mockk()
             logger = mockk()

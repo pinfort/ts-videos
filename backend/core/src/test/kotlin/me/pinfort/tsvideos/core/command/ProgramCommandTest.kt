@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -154,6 +155,10 @@ class ProgramCommandTest :
                 status = SplittedFile.Status.REGISTERED,
                 duration = 4.0,
             )
+
+        beforeTest {
+            clearAllMocks()
+        }
 
         context("selectByName") {
             expect("success") {
