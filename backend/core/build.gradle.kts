@@ -9,6 +9,10 @@ plugins {
 group = "me.pinfort"
 version = "0.0.1-SNAPSHOT"
 
+tasks.bootJar {
+    enabled = false
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")

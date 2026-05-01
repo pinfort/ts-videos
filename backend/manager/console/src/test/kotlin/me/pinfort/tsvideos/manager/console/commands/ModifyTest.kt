@@ -3,6 +3,7 @@ package me.pinfort.tsvideos.manager.console.commands
 import com.github.ajalt.clikt.core.main
 import io.kotest.core.spec.style.ExpectSpec
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -17,10 +18,18 @@ import java.time.LocalDateTime
 
 class ModifyTest :
     ExpectSpec({
-        val programCommand = mockk<ProgramCommand>()
-        val directoryNameComponent = mockk<DirectoryNameComponent>()
-        val userQuestionComponent = mockk<UserQuestionComponent>()
-        val modify = Modify(programCommand, directoryNameComponent, userQuestionComponent)
+        lateinit var programCommand: ProgramCommand
+        lateinit var directoryNameComponent: DirectoryNameComponent
+        lateinit var userQuestionComponent: UserQuestionComponent
+        lateinit var modify: Modify
+
+        beforeTest {
+            clearAllMocks()
+            programCommand = mockk()
+            directoryNameComponent = mockk()
+            userQuestionComponent = mockk()
+            modify = Modify(programCommand, directoryNameComponent, userQuestionComponent)
+        }
 
         val dummyProgram =
             Program(

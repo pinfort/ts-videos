@@ -3,6 +3,7 @@ package me.pinfort.tsvideos.manager.console.commands
 import com.github.ajalt.clikt.core.main
 import io.kotest.core.spec.style.ExpectSpec
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -18,10 +19,19 @@ import java.time.LocalDateTime
 
 class DeleteTest :
     ExpectSpec({
-        val programCommand = mockk<ProgramCommand>()
-        val userQuestionComponent = mockk<UserQuestionComponent>()
-        val createdFileCommand = mockk<CreatedFileCommand>()
-        val delete = Delete(programCommand, userQuestionComponent, createdFileCommand)
+        lateinit var programCommand: ProgramCommand
+        lateinit var userQuestionComponent: UserQuestionComponent
+        lateinit var createdFileCommand: CreatedFileCommand
+        lateinit var delete: Delete
+
+        beforeTest {
+            clearAllMocks()
+
+            programCommand = mockk()
+            userQuestionComponent = mockk()
+            createdFileCommand = mockk()
+            delete = Delete(programCommand, userQuestionComponent, createdFileCommand)
+        }
 
         val dummyProgram =
             Program(

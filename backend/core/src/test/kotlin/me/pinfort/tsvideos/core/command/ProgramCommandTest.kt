@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -32,33 +33,52 @@ import java.time.LocalDateTime
 
 class ProgramCommandTest :
     ExpectSpec({
-        val programMapper = mockk<ProgramMapper>()
-        val programConverter = mockk<ProgramConverter>()
-        val createdFileMapper = mockk<CreatedFileMapper>()
-        val createdFileConverter = mockk<CreatedFileConverter>()
-        val programDetailConverter = mockk<ProgramDetailConverter>()
-        val executedFileCommand = mockk<ExecutedFileCommand>()
-        val createdFileCommand = mockk<CreatedFileCommand>()
-        val splittedFileMapper = mockk<SplittedFileMapper>()
-        val logger = mockk<Logger>()
-        val splittedFileCommand = mockk<SplittedFileCommand>()
-        val splittedFileConverter = mockk<SplittedFileConverter>()
-        val directoryNameComponent = mockk<DirectoryNameComponent>()
-        val programCommand =
-            ProgramCommand(
-                programMapper,
-                programConverter,
-                createdFileMapper,
-                createdFileConverter,
-                programDetailConverter,
-                executedFileCommand,
-                createdFileCommand,
-                splittedFileMapper,
-                logger,
-                splittedFileCommand,
-                splittedFileConverter,
-                directoryNameComponent,
-            )
+
+        lateinit var programMapper: ProgramMapper
+        lateinit var programConverter: ProgramConverter
+        lateinit var createdFileMapper: CreatedFileMapper
+        lateinit var createdFileConverter: CreatedFileConverter
+        lateinit var programDetailConverter: ProgramDetailConverter
+        lateinit var executedFileCommand: ExecutedFileCommand
+        lateinit var createdFileCommand: CreatedFileCommand
+        lateinit var splittedFileMapper: SplittedFileMapper
+        lateinit var logger: Logger
+        lateinit var splittedFileCommand: SplittedFileCommand
+        lateinit var splittedFileConverter: SplittedFileConverter
+        lateinit var directoryNameComponent: DirectoryNameComponent
+        lateinit var programCommand: ProgramCommand
+
+        beforeTest {
+            clearAllMocks()
+
+            programMapper = mockk<ProgramMapper>()
+            programConverter = mockk<ProgramConverter>()
+            createdFileMapper = mockk<CreatedFileMapper>()
+            createdFileConverter = mockk<CreatedFileConverter>()
+            programDetailConverter = mockk<ProgramDetailConverter>()
+            executedFileCommand = mockk<ExecutedFileCommand>()
+            createdFileCommand = mockk<CreatedFileCommand>()
+            splittedFileMapper = mockk<SplittedFileMapper>()
+            logger = mockk<Logger>()
+            splittedFileCommand = mockk<SplittedFileCommand>()
+            splittedFileConverter = mockk<SplittedFileConverter>()
+            directoryNameComponent = mockk<DirectoryNameComponent>()
+            programCommand =
+                ProgramCommand(
+                    programMapper,
+                    programConverter,
+                    createdFileMapper,
+                    createdFileConverter,
+                    programDetailConverter,
+                    executedFileCommand,
+                    createdFileCommand,
+                    splittedFileMapper,
+                    logger,
+                    splittedFileCommand,
+                    splittedFileConverter,
+                    directoryNameComponent,
+                )
+        }
 
         val program =
             Program(
