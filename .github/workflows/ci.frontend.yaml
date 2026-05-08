@@ -2,6 +2,9 @@ name: frontend ci
 on: 
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci.frontend.yaml'
 
 defaults:
   run:
@@ -22,6 +25,10 @@ jobs:
           cache-dependency-path: 'frontend/pnpm-lock.yaml'
       - name: install
         run: pnpm install
+      - name: typecheck
+        run: pnpm typecheck
+      - name: build
+        run: pnpm build
       - name: lint
         run: pnpm lint
       #- name: test
