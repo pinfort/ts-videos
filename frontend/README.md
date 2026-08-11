@@ -15,6 +15,10 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Configuration
+
+`NEXT_PUBLIC_API_BASE_URL` — base URL of the `manager:api` backend. Defaults to `http://localhost:8080` if unset, so no `.env` file is needed to run against a locally running backend on its default port. This must be a browser-reachable URL, since the video playback/download page fetches video bytes directly from the backend rather than through the Next.js server.
+
 ## Scripts
 
 - `pnpm dev` - start the development server

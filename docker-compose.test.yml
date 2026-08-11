@@ -1,0 +1,64 @@
+# Local test/dev stack for the manager:api backend: MariaDB + Samba (NAS) shares.
+#
+# All values here mirror the Spring Boot defaults in
+# backend/core/src/main/resources/application-core.yaml, so
+#   cd backend && ./gradlew manager:api:bootRun
+# works against this stack with zero env vars set.
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up -d
+#   docker compose -f docker-compose.test.yml down       # stop
+#   docker compose -f docker-compose.test.yml down -v    # stop + wipe DB data
+#
+# To test video streaming end-to-end, drop an .mp4 file into
+# .docker/samba/alice/ or .docker/samba/bob/ and reference its path
+# (relative to the share root) as `created_file.file` in the database.
+
+services:
+  mariadb:
+    image: mariadb:11.8
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: test
+      MARIADB_USER: test
+      MARIADB_PASSWORD: test
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      # matches backend/manager/api's CI test setup (TC_INITSCRIPT=ddl/01_create_database.sql)
+      - ./backend/core/src/test/resources/ddl/01_create_database.sql:/docker-entrypoint-initdb.d/01_create_database.sql:ro
+      - ./backend/core/src/test/resources/ddl/02_insert_data.sql:/docker-entrypoint-initdb.d/02_insert_data.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -utest -ptest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # https://github.com/ServerContainers/samba
+  samba:
+    image: ghcr.io/servercontainers/samba
+    restart: unless-stopped
+    ports:
+      - "139:139"
+      # 445 intentionally not published: the app only ever connects via
+      # smb://localhost:139/..., and on WSL2/Windows host port 445 is
+      # normally already bound by Windows' own SMB service, which makes
+      # `docker compose up` fail with "ports are not available".
+    environment:
+      # zeroconf/WSD/NetBIOS name services aren't needed for direct smb://host:139/share access
+      AVAHI_DISABLE: "1"
+      WSDD2_DISABLE: "1"
+      NETBIOS_DISABLE: "1"
+      ACCOUNT_pinfort: password
+      UID_pinfort: "1000"
+      # share names/credentials match samba.video-store-nas / samba.original-store-nas defaults
+      SAMBA_VOLUME_CONFIG_alice: "[alice]; path=/shares/alice; valid users = pinfort; guest ok = no; read only = no; browseable = yes"
+      SAMBA_VOLUME_CONFIG_bob: "[bob]; path=/shares/bob; valid users = pinfort; guest ok = no; read only = no; browseable = yes"
+    volumes:
+      - ./.docker/samba/alice:/shares/alice
+      - ./.docker/samba/bob:/shares/bob
+
+volumes:
+  mariadb-data:

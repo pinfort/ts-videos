@@ -31,6 +31,12 @@ dependencies {
     testImplementation(libs.kotest.extensions.spring)
     testImplementation(libs.mockk)
     testImplementation(libs.springmockk)
+
+    // testcontainers, for ApiApplicationTest (full context load, backed by a real DB)
+    testImplementation(libs.testcontainers.core)
+    testImplementation(libs.testcontainers.junit5)
+    testImplementation(libs.testcontainers.mariadb)
+    testImplementation(libs.testcontainers.spring.boot)
 }
 
 tasks.test {
