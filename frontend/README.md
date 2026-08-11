@@ -26,6 +26,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 - `pnpm start` - run the production build
 - `pnpm lint` - run ESLint
 - `pnpm typecheck` - run TypeScript type checking
+- `pnpm test` - run the test suite
+- `pnpm test:watch` - run the test suite in watch mode
+- `pnpm coverage` - run the test suite with coverage report
 
 ## Learn More
 
