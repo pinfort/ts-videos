@@ -1,0 +1,5 @@
+# local docker-compose.test.yml bind mounts (see docker-compose.test.yml)
+.docker/samba/alice/*
+.docker/samba/bob/*
+!.docker/samba/alice/.gitkeep
+!.docker/samba/bob/.gitkeep
