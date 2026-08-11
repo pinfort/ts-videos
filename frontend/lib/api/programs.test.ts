@@ -26,6 +26,12 @@ describe("getPrograms", () => {
     await getPrograms({ name: "anime", limit: 20, offset: 40 });
     expect(fetchJson).toHaveBeenCalledWith("/api/v1/programs?name=anime&limit=20&offset=40");
   });
+
+  it("treats an empty-string name the same as an unset one", async () => {
+    fetchJson.mockResolvedValue({ programs: [] });
+    await getPrograms({ name: "" });
+    expect(fetchJson).toHaveBeenCalledWith("/api/v1/programs?");
+  });
 });
 
 describe("getProgramDetail", () => {

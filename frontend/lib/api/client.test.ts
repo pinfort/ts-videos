@@ -54,4 +54,11 @@ describe("fetchJson", () => {
 
     await expect(fetchJson("/programs/1")).rejects.toBeInstanceOf(ApiError);
   });
+
+  it("propagates the error when fetch itself rejects", async () => {
+    const networkError = new TypeError("Failed to fetch");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(networkError));
+
+    await expect(fetchJson("/programs")).rejects.toBe(networkError);
+  });
 });
