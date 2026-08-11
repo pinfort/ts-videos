@@ -7,7 +7,7 @@ export function ProgramDetailTable({ program }: { program: ProgramDetail }) {
     ["ファイル名", program.name],
     ["executedFileId", program.executedFileId],
     ["状態", programStatusToJapanese(program.status)],
-    ["ドロップ数", program.drops || 0],
+    ["ドロップ数", program.drops],
   ];
 
   return (
