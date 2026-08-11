@@ -2,15 +2,24 @@
 
 TS抜きした録画データを処理、管理するためのアプリケーション
 
-- core: 共通コンポーネント
-- manager: 処理済みの録画データを管理するためのツール
-- processor: 録画データを処理して管理ツールで管理できる状態にするためのアプリケーション
+- backend: 録画データの処理・管理を行う Kotlin/Spring Boot バックエンド（core/manager/processor の各モジュールで構成） ([backend/README.md](backend/README.md))
+- frontend: manager 向けの Web フロントエンド ([frontend/README.md](frontend/README.md))
 
 ## ローカルでのバックエンド動作確認
 
-`docker-compose.test.yml` で MariaDB と Samba (NAS) を起動すると、`backend/core/src/main/resources/application-core.yaml` のデフォルト値のまま環境変数なしで `manager:api` をローカル起動できます。
+`docker-compose.test.yml` で MariaDB と Samba (NAS) を起動すると、環境変数なしで `manager:api` をローカル起動できます。詳細は [backend/README.md](backend/README.md) を参照してください。
 
 ```bash
 docker compose -f docker-compose.test.yml up -d
 cd backend && ./gradlew manager:api:bootRun
+```
+
+## ローカルでのフロントエンド動作確認
+
+上記の `manager:api` を `http://localhost:8080` で起動しておけば、`frontend` はデフォルト設定のまま接続できます。詳細は [frontend/README.md](frontend/README.md) を参照してください。
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
 ```
