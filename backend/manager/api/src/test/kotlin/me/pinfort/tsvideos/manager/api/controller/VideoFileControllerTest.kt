@@ -63,6 +63,16 @@ class VideoFileControllerTest : DescribeSpec() {
                     .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "2"))
             }
 
+            it("out-of-range Range header returns 416") {
+                every { createdFileCommand.streamCreatedFile(1L) } returns ByteArrayResource(ByteArray(10))
+
+                mockMvc
+                    .perform(get("/api/v1/video/1/stream").header(HttpHeaders.RANGE, "bytes=10000-"))
+                    .andDo(print())
+                    .andExpect(status().isRequestedRangeNotSatisfiable)
+                    .andExpect(header().string(HttpHeaders.CONTENT_RANGE, "bytes */10"))
+            }
+
             it("not found") {
                 every { createdFileCommand.streamCreatedFile(1L) } returns null
 
