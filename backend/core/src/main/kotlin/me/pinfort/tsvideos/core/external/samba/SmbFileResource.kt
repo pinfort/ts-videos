@@ -10,7 +10,7 @@ class SmbFileResource(
 ) : AbstractResource() {
     override fun getDescription(): String = "SMB resource [${smbResource.name}]"
 
-    override fun getInputStream(): InputStream = smbResource.openInputStream()
+    override fun getInputStream(): InputStream = smbResource.openInputStream().buffered()
 
     override fun contentLength(): Long = length
 

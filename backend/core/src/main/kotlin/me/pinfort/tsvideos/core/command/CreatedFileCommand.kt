@@ -34,8 +34,7 @@ class CreatedFileCommand(
                 sambaClient
                     .videoStoreNas()
                     .resolve(createdFile.file.replace('\\', '/'))
-            if (!resource.exists()) return null
-            SmbFileResource(resource, createdFile.size)
+            SmbFileResource(resource, resource.length())
         } catch (e: CIFSException) {
             null
         }

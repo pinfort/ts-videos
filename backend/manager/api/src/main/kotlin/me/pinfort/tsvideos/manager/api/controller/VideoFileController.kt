@@ -25,25 +25,25 @@ class VideoFileController(
         val contentType = MediaType.asMediaType(MimeType.valueOf("video/mp4"))
         val contentLength = video.contentLength()
 
-        return try {
-            val range = headers.range.firstOrNull()
-            val (status, region) =
+        val (status, region) =
+            try {
+                val range = headers.range.firstOrNull()
                 if (range == null) {
                     HttpStatus.OK to ResourceRegion(video, 0, contentLength)
                 } else {
                     HttpStatus.PARTIAL_CONTENT to range.toResourceRegion(video)
                 }
+            } catch (e: IllegalArgumentException) {
+                return ResponseEntity
+                    .status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
+                    .header(HttpHeaders.CONTENT_RANGE, "bytes */$contentLength")
+                    .build()
+            }
 
-            ResponseEntity
-                .status(status)
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .contentType(contentType)
-                .body(region)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity
-                .status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE)
-                .header(HttpHeaders.CONTENT_RANGE, "bytes */$contentLength")
-                .build()
-        }
+        return ResponseEntity
+            .status(status)
+            .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+            .contentType(contentType)
+            .body(region)
     }
 }
