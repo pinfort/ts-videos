@@ -6,10 +6,11 @@ import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConve
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
+import me.pinfort.tsvideos.core.external.samba.SmbFileResource
 import org.slf4j.Logger
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.io.InputStream
 
 @Component
 class CreatedFileCommand(
@@ -26,13 +27,14 @@ class CreatedFileCommand(
         return createdFile
     }
 
-    fun streamCreatedFile(id: Long): InputStream? {
+    fun streamCreatedFile(id: Long): Resource? {
         val createdFile: CreatedFile = findMp4File(id) ?: return null
         return try {
-            sambaClient
-                .videoStoreNas()
-                .resolve(createdFile.file.replace('\\', '/'))
-                .openInputStream()
+            val resource =
+                sambaClient
+                    .videoStoreNas()
+                    .resolve(createdFile.file.replace('\\', '/'))
+            SmbFileResource(resource, resource.length())
         } catch (e: CIFSException) {
             null
         }
