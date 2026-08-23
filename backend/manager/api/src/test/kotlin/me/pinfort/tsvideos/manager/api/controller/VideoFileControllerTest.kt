@@ -7,13 +7,13 @@ import io.mockk.every
 import me.pinfort.tsvideos.core.command.CreatedFileCommand
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.HttpHeaders
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import java.io.InputStream
 
 @WebMvcTest(VideoFileController::class)
 class VideoFileControllerTest : DescribeSpec() {
@@ -28,13 +28,39 @@ class VideoFileControllerTest : DescribeSpec() {
     init {
         describe("stream") {
             it("success") {
-                every { createdFileCommand.streamCreatedFile(1L) } returns InputStream.nullInputStream()
+                every { createdFileCommand.streamCreatedFile(1L) } returns ByteArrayResource(ByteArray(10))
 
                 mockMvc
                     .perform(get("/api/v1/video/1/stream"))
                     .andDo(print())
                     .andExpect(status().isOk)
                     .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "video/mp4"))
+                    .andExpect(header().string(HttpHeaders.ACCEPT_RANGES, "bytes"))
+                    .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "10"))
+            }
+
+            it("range request returns partial content") {
+                every { createdFileCommand.streamCreatedFile(1L) } returns ByteArrayResource(ByteArray(10))
+
+                mockMvc
+                    .perform(get("/api/v1/video/1/stream").header(HttpHeaders.RANGE, "bytes=2-5"))
+                    .andDo(print())
+                    .andExpect(status().isPartialContent)
+                    .andExpect(header().string(HttpHeaders.CONTENT_TYPE, "video/mp4"))
+                    .andExpect(header().string(HttpHeaders.ACCEPT_RANGES, "bytes"))
+                    .andExpect(header().string(HttpHeaders.CONTENT_RANGE, "bytes 2-5/10"))
+                    .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "4"))
+            }
+
+            it("open-ended range request returns bytes to end of file") {
+                every { createdFileCommand.streamCreatedFile(1L) } returns ByteArrayResource(ByteArray(10))
+
+                mockMvc
+                    .perform(get("/api/v1/video/1/stream").header(HttpHeaders.RANGE, "bytes=8-"))
+                    .andDo(print())
+                    .andExpect(status().isPartialContent)
+                    .andExpect(header().string(HttpHeaders.CONTENT_RANGE, "bytes 8-9/10"))
+                    .andExpect(header().string(HttpHeaders.CONTENT_LENGTH, "2"))
             }
 
             it("not found") {

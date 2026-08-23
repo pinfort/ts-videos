@@ -3,6 +3,7 @@ package me.pinfort.tsvideos.core.command
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -10,6 +11,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
+import jcifs.SmbResource
 import jcifs.smb.SmbException
 import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
@@ -17,6 +19,7 @@ import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConve
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
+import me.pinfort.tsvideos.core.external.samba.SmbFileResource
 import org.slf4j.Logger
 import java.io.InputStream
 
@@ -103,40 +106,60 @@ class CreatedFileCommandTest :
             expect("success") {
                 val testCreatedFile = createdFile.copy(mime = "video/mp4")
                 val testStream = InputStream.nullInputStream()
+                val smbResource = mockk<SmbResource>()
                 every { createdFileMapper.find(any()) } returns createdFileDto
                 every { createdFileConverter.convert(any()) } returns testCreatedFile
-                every { sambaClient.videoStoreNas().resolve(any()).openInputStream() } returns testStream
+                every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
+                every { smbResource.exists() } returns true
+                every { smbResource.openInputStream() } returns testStream
 
-                createdFileCommand.streamCreatedFile(1) shouldBe testStream
+                val result = createdFileCommand.streamCreatedFile(1)
+
+                result.shouldBeInstanceOf<SmbFileResource>()
+                result?.contentLength() shouldBe testCreatedFile.size
+                result?.inputStream shouldBe testStream
 
                 verifySequence {
                     createdFileMapper.find(1)
                     createdFileConverter.convert(createdFileDto)
                     sambaClient.videoStoreNas().resolve("file")
+                    smbResource.exists()
+                    smbResource.openInputStream()
                 }
             }
 
             expect("successBackSlash") {
                 val testCreatedFile = createdFile.copy(mime = "video/mp4", file = "test\\")
                 val testStream = InputStream.nullInputStream()
+                val smbResource = mockk<SmbResource>()
                 every { createdFileMapper.find(any()) } returns createdFileDto
                 every { createdFileConverter.convert(any()) } returns testCreatedFile
-                every { sambaClient.videoStoreNas().resolve(any()).openInputStream() } returns testStream
+                every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
+                every { smbResource.exists() } returns true
+                every { smbResource.openInputStream() } returns testStream
 
-                createdFileCommand.streamCreatedFile(1) shouldBe testStream
+                val result = createdFileCommand.streamCreatedFile(1)
+
+                result.shouldBeInstanceOf<SmbFileResource>()
+                result?.contentLength() shouldBe testCreatedFile.size
+                result?.inputStream shouldBe testStream
 
                 verifySequence {
                     createdFileMapper.find(1)
                     createdFileConverter.convert(createdFileDto)
                     sambaClient.videoStoreNas().resolve("test/")
+                    smbResource.exists()
+                    smbResource.openInputStream()
                 }
             }
 
             expect("noFile") {
                 val testCreatedFile = createdFile.copy(mime = "video/mp4", file = "test\\")
+                val smbResource = mockk<SmbResource>()
                 every { createdFileMapper.find(any()) } returns createdFileDto
                 every { createdFileConverter.convert(any()) } returns testCreatedFile
-                every { sambaClient.videoStoreNas().resolve(any()).openInputStream() } throws SmbException("err")
+                every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
+                every { smbResource.exists() } throws SmbException("err")
 
                 createdFileCommand.streamCreatedFile(1) shouldBe null
 
@@ -144,6 +167,25 @@ class CreatedFileCommandTest :
                     createdFileMapper.find(1)
                     createdFileConverter.convert(createdFileDto)
                     sambaClient.videoStoreNas().resolve("test/")
+                    smbResource.exists()
+                }
+            }
+
+            expect("notExists") {
+                val testCreatedFile = createdFile.copy(mime = "video/mp4", file = "test\\")
+                val smbResource = mockk<SmbResource>()
+                every { createdFileMapper.find(any()) } returns createdFileDto
+                every { createdFileConverter.convert(any()) } returns testCreatedFile
+                every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
+                every { smbResource.exists() } returns false
+
+                createdFileCommand.streamCreatedFile(1) shouldBe null
+
+                verifySequence {
+                    createdFileMapper.find(1)
+                    createdFileConverter.convert(createdFileDto)
+                    sambaClient.videoStoreNas().resolve("test/")
+                    smbResource.exists()
                 }
             }
 
