@@ -22,3 +22,13 @@ samba:
     url: ${ORIGINAL_STORE_NAS_URL:smb://localhost:139/bob}
     username: ${ORIGINAL_STORE_NAS_USERNAME:pinfort}
     password: ${ORIGINAL_STORE_NAS_PASSWORD:password}
+processor-tool:
+  ts-drop-chk-path: ${TS_DROP_CHK_PATH:C:\tools\tsDropChk\tsDropChkx64.exe}
+  ts-splitter-path: ${TS_SPLITTER_PATH:C:\tools\TsSplitter\TsSplitter.exe}
+  amatsukaze-add-task-path: ${AMATSUKAZE_ADD_TASK_PATH:C:\tools\Amatsukaze\exe_files\AmatsukazeAddTask.exe}
+  ffprobe-path: ${FFPROBE_PATH:ffprobe}
+  amatsukaze:
+    host: ${AMATSUKAZE_HOST:localhost}
+    port: ${AMATSUKAZE_PORT:32768}
+    default-profile: ${AMATSUKAZE_DEFAULT_PROFILE:30fps_light}
+    atx-div-profile: ${AMATSUKAZE_ATX_DIV_PROFILE:30fps_light_atx_div}

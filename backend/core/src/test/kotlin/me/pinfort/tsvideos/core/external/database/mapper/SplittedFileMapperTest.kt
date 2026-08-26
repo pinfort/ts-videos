@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +29,52 @@ class SplittedFileMapperTest : ExpectSpec() {
     private lateinit var splittedFileMapper: SplittedFileMapper
 
     init {
+        context("insert") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM splitted_file").execute()
+                connection.commit()
+
+                val keyHolder = GeneratedKeyHolder()
+                splittedFileMapper.insert(1, "filepath", 2, 3.0, "REGISTERED", keyHolder)
+                connection.commit()
+
+                keyHolder.id shouldNotBe 0
+                splittedFileMapper.selectByExecutedFileId(1) shouldBe
+                    listOf(
+                        SplittedFileDto(
+                            id = keyHolder.id,
+                            executedFileId = 1,
+                            file = "filepath",
+                            size = 2,
+                            duration = 3.0,
+                            status = SplittedFileDto.Status.REGISTERED,
+                        ),
+                    )
+                connection.close()
+            }
+        }
+
+        context("updateStatus") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM splitted_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO splitted_file(id,executed_file_id,file,size,duration,status) VALUES(1,1,'filepath',2,3,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
+
+                splittedFileMapper.updateStatus(1, "COMPRESS_SAVED")
+                connection.commit()
+
+                splittedFileMapper.selectByExecutedFileId(1)[0].status shouldBe SplittedFileDto.Status.COMPRESS_SAVED
+                connection.close()
+            }
+        }
+
         context("selectByExecutedFileId") {
             expect("single") {
                 val connection = dataSource.connection

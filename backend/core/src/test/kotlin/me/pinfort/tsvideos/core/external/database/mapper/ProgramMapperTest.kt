@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,6 +30,103 @@ class ProgramMapperTest : ExpectSpec() {
     private lateinit var programMapper: ProgramMapper
 
     init {
+        context("insert") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.commit()
+
+                val keyHolder = GeneratedKeyHolder()
+                programMapper.insert("test", 1, "REGISTERED", keyHolder)
+                connection.commit()
+
+                keyHolder.id shouldNotBe 0
+                programMapper.find(keyHolder.id)?.name shouldBe "test"
+                connection.close()
+            }
+        }
+
+        context("findByName") {
+            expect("found") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.prepareStatement("DELETE FROM executed_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                        INSERT INTO executed_file(id,file,drops,`size`,recorded_at,channel,title,channelName,duration,status)
+                        VALUES(1,'filepath',0,2,cast('2009-08-03 23:58:01' as datetime),'BSxx','myTitle','myChannel',3,'SPLITTED');
+                        """.trimIndent(),
+                    ).execute()
+                connection.commit()
+
+                val actual = programMapper.findByName("test")
+                connection.close()
+
+                actual shouldBe
+                    ProgramDto(
+                        1,
+                        "test",
+                        1,
+                        ProgramDto.Status.REGISTERED,
+                        0,
+                        2,
+                        LocalDateTime.of(2009, 8, 3, 23, 58, 1),
+                        "BSxx",
+                        "myTitle",
+                        "myChannel",
+                        3.0,
+                    )
+            }
+
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.commit()
+
+                val actual = programMapper.findByName("test")
+                connection.close()
+
+                actual shouldBe null
+            }
+        }
+
+        context("deleteByExecutedFileId") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
+
+                programMapper.deleteByExecutedFileId(1)
+
+                programMapper.find(1) shouldBe null
+                connection.close()
+            }
+
+            expect("nothingHasDeleted") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection.commit()
+
+                programMapper.deleteByExecutedFileId(1)
+
+                programMapper.find(1) shouldBe null
+                connection.close()
+            }
+        }
+
         context("selectByName") {
             expect("single") {
                 val connection = dataSource.connection

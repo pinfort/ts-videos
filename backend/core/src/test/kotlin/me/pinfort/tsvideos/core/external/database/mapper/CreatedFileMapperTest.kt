@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +29,53 @@ class CreatedFileMapperTest : ExpectSpec() {
     private lateinit var createdFileMapper: CreatedFileMapper
 
     init {
+        context("insert") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM created_file").execute()
+                connection.commit()
+
+                val keyHolder = GeneratedKeyHolder()
+                createdFileMapper.insert(2, "test", 3, "test2", "test3", "FILE_MOVED", keyHolder)
+                connection.commit()
+
+                keyHolder.id shouldNotBe 0
+                createdFileMapper.find(keyHolder.id) shouldBe
+                    CreatedFileDto(
+                        id = keyHolder.id,
+                        splittedFileId = 2,
+                        file = "test",
+                        size = 3,
+                        mime = "test2",
+                        encoding = "test3",
+                        status = CreatedFileDto.Status.FILE_MOVED,
+                    )
+                connection.close()
+            }
+
+            expect("nullableMimeAndEncoding") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM created_file").execute()
+                connection.commit()
+
+                val keyHolder = GeneratedKeyHolder()
+                createdFileMapper.insert(2, "test", 3, null, null, "REGISTERED", keyHolder)
+                connection.commit()
+
+                createdFileMapper.find(keyHolder.id) shouldBe
+                    CreatedFileDto(
+                        id = keyHolder.id,
+                        splittedFileId = 2,
+                        file = "test",
+                        size = 3,
+                        mime = null,
+                        encoding = null,
+                        status = CreatedFileDto.Status.REGISTERED,
+                    )
+                connection.close()
+            }
+        }
+
         context("find") {
             expect("single") {
                 val connection = dataSource.connection

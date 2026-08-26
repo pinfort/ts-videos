@@ -2,12 +2,31 @@ package me.pinfort.tsvideos.core.external.database.mapper
 
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import org.apache.ibatis.annotations.Delete
+import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
+import org.apache.ibatis.annotations.Options
 import org.apache.ibatis.annotations.Select
 import org.apache.ibatis.annotations.Update
 
 @Mapper
 interface CreatedFileMapper {
+    @Insert(
+        """
+            INSERT INTO created_file(splitted_file_id, file, size, mime, encoding, status)
+            VALUES(#{splittedFileId}, #{file}, #{size}, #{mime}, #{encoding}, #{status})
+        """,
+    )
+    @Options(useGeneratedKeys = true, keyProperty = "keyHolder.id")
+    fun insert(
+        splittedFileId: Long,
+        file: String,
+        size: Long,
+        mime: String?,
+        encoding: String?,
+        status: String,
+        keyHolder: GeneratedKeyHolder,
+    ): Int
+
     @Select(
         """
             SELECT

@@ -1,6 +1,8 @@
 package me.pinfort.tsvideos.core.command
 
 import me.pinfort.tsvideos.core.domain.SplittedFile
+import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -8,8 +10,54 @@ import org.springframework.stereotype.Component
 @Component
 class SplittedFileCommand(
     private val splittedFileMapper: SplittedFileMapper,
+    private val splittedFileConverter: SplittedFileConverter,
     private val logger: Logger,
 ) {
+    fun selectByExecutedFileId(executedFileId: Long): List<SplittedFile> =
+        splittedFileMapper.selectByExecutedFileId(executedFileId).map { splittedFileConverter.convert(it) }
+
+    fun insert(
+        executedFileId: Long,
+        file: String,
+        size: Long,
+        duration: Double,
+        dryRun: Boolean = false,
+    ): SplittedFile {
+        val status = SplittedFile.Status.REGISTERED
+        val id =
+            if (!dryRun) {
+                val keyHolder = GeneratedKeyHolder()
+                splittedFileMapper.insert(executedFileId, file, size, duration, status.name, keyHolder)
+                keyHolder.id
+            } else {
+                0L
+            }
+        val splittedFile =
+            SplittedFile(
+                id = id,
+                executedFileId = executedFileId,
+                file = file,
+                size = size,
+                duration = duration,
+                status = status,
+            )
+        logger.info("Insert splitted file, id=$id, splittedFile=$splittedFile")
+        return splittedFile
+    }
+
+    fun updateStatus(
+        splittedFile: SplittedFile,
+        status: SplittedFile.Status,
+        dryRun: Boolean = false,
+    ): SplittedFile {
+        if (!dryRun) {
+            splittedFileMapper.updateStatus(splittedFile.id, status.name)
+        }
+        val updated = splittedFile.copy(status = status)
+        logger.info("Update splitted file status, id=${splittedFile.id}, status=$status")
+        return updated
+    }
+
     fun delete(
         splittedFile: SplittedFile,
         dryRun: Boolean = false,

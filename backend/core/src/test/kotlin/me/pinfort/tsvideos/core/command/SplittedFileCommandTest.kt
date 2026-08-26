@@ -1,6 +1,7 @@
 package me.pinfort.tsvideos.core.command
 
 import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -9,14 +10,28 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import me.pinfort.tsvideos.core.domain.SplittedFile
+import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
+import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import org.slf4j.Logger
 
 class SplittedFileCommandTest :
     ExpectSpec({
         lateinit var splittedFileMapper: SplittedFileMapper
+        lateinit var splittedFileConverter: SplittedFileConverter
         lateinit var logger: Logger
         lateinit var splittedFileCommand: SplittedFileCommand
+
+        val splittedFileDto =
+            SplittedFileDto(
+                id = 1,
+                executedFileId = 1,
+                file = "test.ts",
+                size = 1,
+                duration = 1.0,
+                status = SplittedFileDto.Status.REGISTERED,
+            )
 
         val splittedFile =
             SplittedFile(
@@ -31,8 +46,75 @@ class SplittedFileCommandTest :
         beforeTest {
             clearAllMocks()
             splittedFileMapper = mockk()
+            splittedFileConverter = mockk()
             logger = mockk()
-            splittedFileCommand = SplittedFileCommand(splittedFileMapper, logger)
+            splittedFileCommand = SplittedFileCommand(splittedFileMapper, splittedFileConverter, logger)
+        }
+
+        context("selectByExecutedFileId") {
+            expect("success") {
+                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
+                every { splittedFileConverter.convert(any()) } returns splittedFile
+
+                splittedFileCommand.selectByExecutedFileId(1) shouldBe listOf(splittedFile)
+
+                verifySequence {
+                    splittedFileMapper.selectByExecutedFileId(1)
+                    splittedFileConverter.convert(splittedFileDto)
+                }
+            }
+        }
+
+        context("insert") {
+            expect("success") {
+                every {
+                    splittedFileMapper.insert(any(), any(), any(), any(), any(), any())
+                } answers {
+                    (it.invocation.args[5] as GeneratedKeyHolder).id = 1
+                    1
+                }
+                every { logger.info(any()) } just Runs
+
+                val actual = splittedFileCommand.insert(1, "test.ts", 1, 1.0)
+
+                actual shouldBe splittedFile
+                verify {
+                    splittedFileMapper.insert(1, "test.ts", 1, 1.0, "REGISTERED", any())
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                val actual = splittedFileCommand.insert(1, "test.ts", 1, 1.0, true)
+
+                actual shouldBe splittedFile.copy(id = 0)
+                verify(exactly = 0) { splittedFileMapper.insert(any(), any(), any(), any(), any(), any()) }
+            }
+        }
+
+        context("updateStatus") {
+            expect("success") {
+                every { splittedFileMapper.updateStatus(any(), any()) } returns 1
+                every { logger.info(any()) } just Runs
+
+                val actual = splittedFileCommand.updateStatus(splittedFile, SplittedFile.Status.COMPRESS_SAVED)
+
+                actual shouldBe splittedFile.copy(status = SplittedFile.Status.COMPRESS_SAVED)
+                verifySequence {
+                    splittedFileMapper.updateStatus(1, "COMPRESS_SAVED")
+                    logger.info(any())
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                val actual = splittedFileCommand.updateStatus(splittedFile, SplittedFile.Status.COMPRESS_SAVED, true)
+
+                actual shouldBe splittedFile.copy(status = SplittedFile.Status.COMPRESS_SAVED)
+                verify(exactly = 0) { splittedFileMapper.updateStatus(any(), any()) }
+            }
         }
 
         context("delete") {
