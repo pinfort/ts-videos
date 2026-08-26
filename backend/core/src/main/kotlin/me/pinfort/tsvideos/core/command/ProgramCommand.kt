@@ -11,12 +11,14 @@ import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.nio.file.Path
+import java.time.LocalDateTime
 
 @Component
 class ProgramCommand(
@@ -44,6 +46,49 @@ class ProgramCommand(
     }
 
     fun find(id: Long): Program? = programMapper.find(id)?.let { programConverter.convert(it) }
+
+    fun findByName(name: String): Program? = programMapper.findByName(name)?.let { programConverter.convert(it) }
+
+    fun insert(
+        name: String,
+        executedFileId: Long,
+        dryRun: Boolean = false,
+    ): Program {
+        val status = Program.Status.REGISTERED
+        if (!dryRun) {
+            val keyHolder = GeneratedKeyHolder()
+            programMapper.insert(name, executedFileId, status.name, keyHolder)
+            val program = find(keyHolder.id) ?: throw Exception("Program not found after insert, id=${keyHolder.id}")
+            logger.info("Insert program, id=${program.id}, program=$program")
+            return program
+        }
+        val program =
+            Program(
+                id = 0,
+                name = name,
+                executedFileId = executedFileId,
+                status = status,
+                drops = 0,
+                size = 0,
+                recordedAt = LocalDateTime.MIN,
+                channel = "",
+                title = "",
+                channelName = "",
+                duration = 0.0,
+            )
+        logger.info("Insert program, id=0, program=$program")
+        return program
+    }
+
+    fun deleteByExecutedFileId(
+        executedFileId: Long,
+        dryRun: Boolean = false,
+    ) {
+        if (!dryRun) {
+            programMapper.deleteByExecutedFileId(executedFileId)
+        }
+        logger.info("Delete program by executedFileId, executedFileId=$executedFileId")
+    }
 
     fun videoFiles(program: Program): List<CreatedFile> =
         createdFileMapper.selectByExecutedFileId(program.executedFileId).map {

@@ -17,6 +17,7 @@ import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
 import me.pinfort.tsvideos.core.external.samba.SmbFileResource
@@ -62,6 +63,66 @@ class CreatedFileCommandTest :
             nasComponent = mockk()
             logger = mockk()
             createdFileCommand = CreatedFileCommand(createdFileMapper, createdFileConverter, sambaClient, nasComponent, logger)
+        }
+
+        context("selectBySplittedFileId") {
+            expect("success") {
+                every { createdFileMapper.selectBySplittedFileId(any()) } returns listOf(createdFileDto)
+                every { createdFileConverter.convert(any()) } returns createdFile
+
+                createdFileCommand.selectBySplittedFileId(2) shouldBe listOf(createdFile)
+
+                verifySequence {
+                    createdFileMapper.selectBySplittedFileId(2)
+                    createdFileConverter.convert(createdFileDto)
+                }
+            }
+        }
+
+        context("insert") {
+            expect("success") {
+                every {
+                    createdFileMapper.insert(any(), any(), any(), any(), any(), any(), any())
+                } answers {
+                    (it.invocation.args[6] as GeneratedKeyHolder).id = 1
+                    1
+                }
+                every { logger.info(any()) } just Runs
+
+                val actual = createdFileCommand.insert(2, "file", 3, "mime", "encoding")
+
+                actual shouldBe
+                    CreatedFile(
+                        id = 1,
+                        splittedFileId = 2,
+                        file = "file",
+                        size = 3,
+                        mime = "mime",
+                        encoding = "encoding",
+                        status = CreatedFile.Status.FILE_MOVED,
+                    )
+                verify {
+                    createdFileMapper.insert(2, "file", 3, "mime", "encoding", "FILE_MOVED", any())
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                val actual = createdFileCommand.insert(2, "file", 3, "mime", "encoding", true)
+
+                actual shouldBe
+                    CreatedFile(
+                        id = 0,
+                        splittedFileId = 2,
+                        file = "file",
+                        size = 3,
+                        mime = "mime",
+                        encoding = "encoding",
+                        status = CreatedFile.Status.FILE_MOVED,
+                    )
+                verify(exactly = 0) { createdFileMapper.insert(any(), any(), any(), any(), any(), any(), any()) }
+            }
         }
 
         context("findMp4File") {

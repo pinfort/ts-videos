@@ -3,6 +3,7 @@ package me.pinfort.tsvideos.core.external.samba
 import jcifs.SmbResource
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
+import java.io.File
 import java.nio.file.Path
 
 @Component
@@ -57,6 +58,29 @@ class NasComponent(
             return SambaClient.NasType.ORIGINAL_STORE_NAS
         }
         throw Exception("File not found, path=$oldFile")
+    }
+
+    fun uploadResource(
+        localFile: File,
+        targetFile: String,
+        nasType: SambaClient.NasType,
+    ): Boolean {
+        val nas =
+            when (nasType) {
+                SambaClient.NasType.VIDEO_STORE_NAS -> videoStoreNas
+                SambaClient.NasType.ORIGINAL_STORE_NAS -> originalStoreNas
+            }
+        val resource = nas.resolve(targetFile.replace('\\', '/'))
+        if (resource.exists()) {
+            logger.info("Upload skipped, file already exists, targetFile=$targetFile")
+            return false
+        }
+        createDirectories(targetFile, nasType)
+        resource.openOutputStream().use { out ->
+            localFile.inputStream().buffered().use { it.copyTo(out) }
+        }
+        logger.info("Upload file, localFile=$localFile, targetFile=$targetFile")
+        return true
     }
 
     fun createDirectories(

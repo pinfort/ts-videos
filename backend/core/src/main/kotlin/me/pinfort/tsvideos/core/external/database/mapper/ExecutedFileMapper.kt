@@ -2,11 +2,50 @@ package me.pinfort.tsvideos.core.external.database.mapper
 
 import me.pinfort.tsvideos.core.external.database.dto.ExecutedFileDto
 import org.apache.ibatis.annotations.Delete
+import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
+import org.apache.ibatis.annotations.Options
 import org.apache.ibatis.annotations.Select
+import org.apache.ibatis.annotations.Update
+import java.time.LocalDateTime
 
 @Mapper
 interface ExecutedFileMapper {
+    @Insert(
+        """
+            INSERT INTO executed_file(file, drops, size, recorded_at, channel, title, channelName, duration, status)
+            VALUES(#{file}, #{drops}, #{size}, #{recordedAt}, #{channel}, #{title}, #{channelName}, #{duration}, #{status})
+        """,
+    )
+    @Options(useGeneratedKeys = true, keyProperty = "keyHolder.id")
+    fun insert(
+        file: String,
+        drops: Int,
+        size: Long,
+        recordedAt: LocalDateTime,
+        channel: String,
+        title: String,
+        channelName: String,
+        duration: Double,
+        status: String,
+        keyHolder: GeneratedKeyHolder,
+    ): Int
+
+    @Update(
+        """
+            UPDATE
+                executed_file
+            SET
+                status = #{status}
+            WHERE
+                id = #{id}
+        """,
+    )
+    fun updateStatus(
+        id: Long,
+        status: String,
+    ): Int
+
     @Select(
         """
             SELECT

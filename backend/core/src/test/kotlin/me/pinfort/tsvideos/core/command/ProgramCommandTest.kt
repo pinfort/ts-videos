@@ -24,6 +24,7 @@ import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import me.pinfort.tsvideos.core.external.samba.SambaClient
@@ -174,6 +175,89 @@ class ProgramCommandTest :
                 status = SplittedFile.Status.REGISTERED,
                 duration = 4.0,
             )
+
+        context("findByName") {
+            expect("success") {
+                every { programMapper.findByName(any()) } returns programDto
+                every { programConverter.convert(any()) } returns program
+
+                val actual = programCommand.findByName("name")
+
+                actual shouldBe program
+
+                verifySequence {
+                    programMapper.findByName("name")
+                    programConverter.convert(programDto)
+                }
+            }
+
+            expect("noHit") {
+                every { programMapper.findByName(any()) } returns null
+
+                val actual = programCommand.findByName("name")
+
+                actual shouldBe null
+
+                verifySequence {
+                    programMapper.findByName("name")
+                }
+            }
+        }
+
+        context("insert") {
+            expect("success") {
+                every {
+                    programMapper.insert(any(), any(), any(), any())
+                } answers {
+                    (it.invocation.args[3] as GeneratedKeyHolder).id = 1
+                    1
+                }
+                every { programMapper.find(any()) } returns programDto
+                every { programConverter.convert(any()) } returns program
+                every { logger.info(any()) } just Runs
+
+                val actual = programCommand.insert("name", 2)
+
+                actual shouldBe program
+                verify {
+                    programMapper.insert("name", 2, "REGISTERED", any())
+                    programMapper.find(1)
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                val actual = programCommand.insert("name", 2, true)
+
+                actual.name shouldBe "name"
+                actual.executedFileId shouldBe 2
+                actual.status shouldBe Program.Status.REGISTERED
+                verify(exactly = 0) { programMapper.insert(any(), any(), any(), any()) }
+            }
+        }
+
+        context("deleteByExecutedFileId") {
+            expect("success") {
+                every { programMapper.deleteByExecutedFileId(any()) } returns 1
+                every { logger.info(any()) } just Runs
+
+                programCommand.deleteByExecutedFileId(2)
+
+                verifySequence {
+                    programMapper.deleteByExecutedFileId(2)
+                    logger.info(any())
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                programCommand.deleteByExecutedFileId(2, true)
+
+                verify(exactly = 0) { programMapper.deleteByExecutedFileId(any()) }
+            }
+        }
 
         context("selectByName") {
             expect("success") {

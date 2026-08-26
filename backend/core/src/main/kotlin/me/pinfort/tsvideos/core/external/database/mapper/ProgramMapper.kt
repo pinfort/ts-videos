@@ -2,11 +2,61 @@ package me.pinfort.tsvideos.core.external.database.mapper
 
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import org.apache.ibatis.annotations.Delete
+import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
+import org.apache.ibatis.annotations.Options
 import org.apache.ibatis.annotations.Select
 
 @Mapper
 interface ProgramMapper {
+    @Insert(
+        """
+            INSERT INTO program(name, executed_file_id, status)
+            VALUES(#{name}, #{executedFileId}, #{status})
+        """,
+    )
+    @Options(useGeneratedKeys = true, keyProperty = "keyHolder.id")
+    fun insert(
+        name: String,
+        executedFileId: Long,
+        status: String,
+        keyHolder: GeneratedKeyHolder,
+    ): Int
+
+    @Select(
+        """
+            SELECT
+                pg.id,
+                pg.name,
+                pg.executed_file_id,
+                pg.status,
+                ex.drops,
+                ex.size,
+                ex.recorded_at,
+                ex.channel,
+                ex.title,
+                ex.channelName,
+                ex.duration
+            FROM
+                program pg
+                LEFT OUTER JOIN executed_file ex
+                    ON pg.executed_file_id = ex.id
+            WHERE
+                pg.name = #{name}
+        """,
+    )
+    fun findByName(name: String): ProgramDto?
+
+    @Delete(
+        """
+            DELETE FROM
+                program
+            WHERE
+                executed_file_id = #{executedFileId}
+        """,
+    )
+    fun deleteByExecutedFileId(executedFileId: Long): Int
+
     @Select(
         """
         SELECT

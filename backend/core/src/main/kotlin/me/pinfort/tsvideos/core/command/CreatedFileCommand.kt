@@ -4,6 +4,7 @@ import jcifs.CIFSException
 import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
+import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
 import me.pinfort.tsvideos.core.external.samba.SmbFileResource
@@ -20,6 +21,40 @@ class CreatedFileCommand(
     private val nasComponent: NasComponent,
     private val logger: Logger,
 ) {
+    fun selectBySplittedFileId(splittedFileId: Long): List<CreatedFile> =
+        createdFileMapper.selectBySplittedFileId(splittedFileId).map { createdFileConverter.convert(it) }
+
+    fun insert(
+        splittedFileId: Long,
+        file: String,
+        size: Long,
+        mime: String?,
+        encoding: String?,
+        dryRun: Boolean = false,
+    ): CreatedFile {
+        val status = CreatedFile.Status.FILE_MOVED
+        val id =
+            if (!dryRun) {
+                val keyHolder = GeneratedKeyHolder()
+                createdFileMapper.insert(splittedFileId, file, size, mime, encoding, status.name, keyHolder)
+                keyHolder.id
+            } else {
+                0L
+            }
+        val createdFile =
+            CreatedFile(
+                id = id,
+                splittedFileId = splittedFileId,
+                file = file,
+                size = size,
+                mime = mime,
+                encoding = encoding,
+                status = status,
+            )
+        logger.info("Insert created file, id=$id, createdFile=$createdFile")
+        return createdFile
+    }
+
     fun findMp4File(id: Long): CreatedFile? {
         val createdFile: CreatedFile = createdFileMapper.find(id)?.let { createdFileConverter.convert(it) } ?: return null
         // 動画ファイルでない場合はファイルが存在しない扱いをする
