@@ -31,11 +31,18 @@ jobs:
           DATABASE_PASSWORD: test
         run: ./gradlew test --no-daemon
       - name: bootJar
-        run: ./gradlew manager:console:bootJar --no-daemon
-      - name: upload jar
+        run: ./gradlew manager:console:bootJar processor:console:bootJar --no-daemon
+      - name: upload manager jar
         uses: actions/upload-artifact@v7
         with:
           name: ts-videos-manager-${{ github.sha }}
           path: backend/manager/console/build/libs/*.jar
+          if-no-files-found: error
+          retention-days: 30
+      - name: upload processor jar
+        uses: actions/upload-artifact@v7
+        with:
+          name: ts-videos-processor-${{ github.sha }}
+          path: backend/processor/console/build/libs/*.jar
           if-no-files-found: error
           retention-days: 30
