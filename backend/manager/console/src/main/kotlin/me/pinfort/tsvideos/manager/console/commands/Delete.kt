@@ -4,9 +4,8 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import me.pinfort.tsvideos.core.command.CreatedFileCommand
@@ -24,7 +23,7 @@ class Delete(
 
     private val targetType by argument("targetType", "type of target resource").enum<TargetType>()
     private val ids by argument("ids", "ids of resource to delete. if ts_files, program id.").int().multiple()
-    private val dryRun by option("-d", "--dry-run").boolean().default(false)
+    private val dryRun by option("-d", "--dry-run").flag(default = false)
 
     enum class TargetType {
         PROGRAM,

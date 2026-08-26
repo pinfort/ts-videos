@@ -3,9 +3,8 @@ package me.pinfort.tsvideos.manager.console.commands
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import me.pinfort.tsvideos.core.command.ProgramCommand
@@ -25,7 +24,7 @@ class Modify(
     private val id by argument("id", "id of resource").int()
     private val targetType by argument("targetType", "type of target resource").enum<TargetType>()
     private val newValue by argument("newValue", "new value of target resource")
-    private val dryRun by option("-d", "--dry-run").boolean().default(false)
+    private val dryRun by option("-d", "--dry-run").flag(default = false)
 
     enum class TargetType {
         DIRECTORY_NAME,
