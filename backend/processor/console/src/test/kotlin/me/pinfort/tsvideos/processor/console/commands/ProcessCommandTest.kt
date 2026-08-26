@@ -35,7 +35,7 @@ class ProcessCommandTest :
             expect("threads the dry-run flag through") {
                 every { processPathService.processPath(any(), any()) } just Runs
 
-                processCommand.main(arrayOf("--dry-run", "true", "/path/one"))
+                processCommand.main(arrayOf("--dry-run", "/path/one"))
 
                 verify { processPathService.processPath(Path.of("/path/one"), true) }
             }
