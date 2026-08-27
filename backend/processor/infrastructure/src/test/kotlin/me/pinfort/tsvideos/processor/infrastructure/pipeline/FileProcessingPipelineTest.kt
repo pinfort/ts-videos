@@ -1,4 +1,4 @@
-package me.pinfort.tsvideos.core.command
+package me.pinfort.tsvideos.processor.infrastructure.pipeline
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
@@ -10,6 +10,10 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
+import me.pinfort.tsvideos.core.command.CreatedFileCommand
+import me.pinfort.tsvideos.core.command.ExecutedFileCommand
+import me.pinfort.tsvideos.core.command.ProgramCommand
+import me.pinfort.tsvideos.core.command.SplittedFileCommand
 import me.pinfort.tsvideos.core.component.CompressComponent
 import me.pinfort.tsvideos.core.component.DirectoryNameComponent
 import me.pinfort.tsvideos.core.component.MainSplittedFileFinderComponent
@@ -31,7 +35,7 @@ import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
 
-class ProcessFileCommandTest :
+class FileProcessingPipelineTest :
     ExpectSpec({
         lateinit var executedFileCommand: ExecutedFileCommand
         lateinit var splittedFileCommand: SplittedFileCommand
@@ -44,7 +48,7 @@ class ProcessFileCommandTest :
         lateinit var nasComponent: NasComponent
         lateinit var sambaClient: SambaClient
         lateinit var logger: Logger
-        lateinit var processFileCommand: ProcessFileCommand
+        lateinit var fileProcessingPipeline: FileProcessingPipeline
 
         val properties =
             ProcessorToolConfigurationProperties(
@@ -75,8 +79,8 @@ class ProcessFileCommandTest :
             sambaClient = mockk()
             logger = mockk(relaxed = true)
             every { sambaClient.resolvePathUnderBaseDir(any(), any()) } answers { secondArg() }
-            processFileCommand =
-                ProcessFileCommand(
+            fileProcessingPipeline =
+                FileProcessingPipeline(
                     executedFileCommand = executedFileCommand,
                     splittedFileCommand = splittedFileCommand,
                     createdFileCommand = createdFileCommand,
@@ -176,9 +180,9 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.find(executedFile.id) } returns executedFile
                 every { amatsukazeAddTaskClient.addTask(any(), any(), any()) } returns 0
 
-                val result = processFileCommand.processFile(original)
+                val result = fileProcessingPipeline.processFile(original)
 
-                result shouldBe ProcessFileCommand.Result.PROCESSED
+                result shouldBe FileProcessingPipeline.Result.PROCESSED
                 verify { amatsukazeAddTaskClient.addTask(any(), any(), "30fps_light") }
                 verify(exactly = 0) { executedFileCommand.delete(any(), any()) }
                 // the file stored in created_file must include the NAS baseDir, matching the physical upload location
@@ -203,9 +207,9 @@ class ProcessFileCommandTest :
                 val program = mockk<Program>()
                 every { programCommand.findByName(original.name) } returns program
 
-                val result = processFileCommand.processFile(original)
+                val result = fileProcessingPipeline.processFile(original)
 
-                result shouldBe ProcessFileCommand.Result.SKIPPED_ALREADY_REGISTERED
+                result shouldBe FileProcessingPipeline.Result.SKIPPED_ALREADY_REGISTERED
                 verify(exactly = 0) { dropChkClient.check(any(), any()) }
             }
         }
@@ -216,7 +220,7 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.findByFile(missing.absolutePath) } returns null
 
                 shouldThrow<TsVideosException> {
-                    processFileCommand.processFile(missing)
+                    fileProcessingPipeline.processFile(missing)
                 }
 
                 verify { executedFileCommand.findByFile(missing.absolutePath) }
@@ -244,7 +248,7 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.delete(any(), any()) } just Runs
 
                 shouldThrow<TsVideosException> {
-                    processFileCommand.processFile(original)
+                    fileProcessingPipeline.processFile(original)
                 }
 
                 verifyOrder {
@@ -295,9 +299,9 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.find(executedFile.id) } returns executedFile
                 every { amatsukazeAddTaskClient.addTask(any(), any(), any()) } returns 0
 
-                val result = processFileCommand.processFile(original)
+                val result = fileProcessingPipeline.processFile(original)
 
-                result shouldBe ProcessFileCommand.Result.PROCESSED
+                result shouldBe FileProcessingPipeline.Result.PROCESSED
                 verify(exactly = 0) { createdFileCommand.insert(any(), any(), any(), any(), any(), any()) }
                 verify(exactly = 0) { nasComponent.uploadResource(any(), any(), any(), any()) }
                 verify { amatsukazeAddTaskClient.addTask(any(), any(), any()) }
@@ -379,7 +383,7 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.delete(any(), any()) } just Runs
 
                 shouldThrow<RuntimeException> {
-                    processFileCommand.processFile(original)
+                    fileProcessingPipeline.processFile(original)
                 }
 
                 verifyOrder {

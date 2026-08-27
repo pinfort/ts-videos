@@ -1,6 +1,5 @@
 package me.pinfort.tsvideos.processor.infrastructure.pipeline
 
-import me.pinfort.tsvideos.core.command.ProcessFileCommand
 import me.pinfort.tsvideos.processor.infrastructure.external.slack.SlackClient
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
@@ -8,8 +7,8 @@ import java.io.File
 import java.nio.file.Path
 
 @Component
-class ProcessPathService(
-    private val processFileCommand: ProcessFileCommand,
+class PathProcessingRunner(
+    private val fileProcessingPipeline: FileProcessingPipeline,
     private val slackClient: SlackClient,
     private val logger: Logger,
 ) {
@@ -28,7 +27,7 @@ class ProcessPathService(
 
         resolveFiles(target).forEach { file ->
             try {
-                processFileCommand.processFile(file, dryRun, onCompressProgress, onUploadProgress)
+                fileProcessingPipeline.processFile(file, dryRun, onCompressProgress, onUploadProgress)
             } catch (e: Exception) {
                 logger.error("processing file failed, file=$file", e)
                 val message = "processing file failed. file:$file reason:${e.message}\nstackTrace:\n```\n${e.stackTraceToString()}\n```"

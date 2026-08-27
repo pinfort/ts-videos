@@ -1,5 +1,9 @@
-package me.pinfort.tsvideos.core.command
+package me.pinfort.tsvideos.processor.infrastructure.pipeline
 
+import me.pinfort.tsvideos.core.command.CreatedFileCommand
+import me.pinfort.tsvideos.core.command.ExecutedFileCommand
+import me.pinfort.tsvideos.core.command.ProgramCommand
+import me.pinfort.tsvideos.core.command.SplittedFileCommand
 import me.pinfort.tsvideos.core.component.CompressComponent
 import me.pinfort.tsvideos.core.component.DirectoryNameComponent
 import me.pinfort.tsvideos.core.component.MainSplittedFileFinderComponent
@@ -25,7 +29,7 @@ import kotlin.math.ceil
  * 各段は失敗すると自身とそれ以前の段を逆順にロールバックしてから例外を再送出する。
  */
 @Component
-class ProcessFileCommand(
+class FileProcessingPipeline(
     private val executedFileCommand: ExecutedFileCommand,
     private val splittedFileCommand: SplittedFileCommand,
     private val createdFileCommand: CreatedFileCommand,
