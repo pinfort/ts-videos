@@ -37,6 +37,7 @@ class ProcessFileCommand(
     private val mainSplittedFileFinderComponent: MainSplittedFileFinderComponent,
     private val compressComponent: CompressComponent,
     private val nasComponent: NasComponent,
+    private val sambaClient: SambaClient,
     private val directoryNameComponent: DirectoryNameComponent,
     private val processorToolConfigurationProperties: ProcessorToolConfigurationProperties,
     private val logger: Logger,
@@ -234,7 +235,9 @@ class ProcessFileCommand(
         val tssplitterDir = splitFile.parentFile.toPath()
         val bucket = directoryNameComponent.indexDirectoryName(tssplitterDir)
         val programDirectory = directoryNameComponent.programDirectoryName(tssplitterDir)
-        val targetFile = "$bucket/$programDirectory/${compressedFile.name}"
+        val relativeTargetFile = "$bucket/$programDirectory/${compressedFile.name}"
+        // NAS の baseDir を含めた、共有ルートからの相対パスとして DB にも保存する。
+        val targetFile = sambaClient.resolvePathUnderBaseDir(SambaClient.NasType.ORIGINAL_STORE_NAS, relativeTargetFile)
 
         nasComponent.uploadResource(compressedFile, targetFile, SambaClient.NasType.ORIGINAL_STORE_NAS, onUploadProgress)
         createdFileCommand.insert(splittedFile.id, targetFile, compressedFile.length(), "video/vnd.dlna.mpeg-tts", "gzip", dryRun)

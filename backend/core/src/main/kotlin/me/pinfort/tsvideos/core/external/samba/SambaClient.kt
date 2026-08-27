@@ -25,8 +25,7 @@ class SambaClient(
                 sambaConfigurationProperties.videoStoreNas.username,
                 sambaConfigurationProperties.videoStoreNas.password,
             )
-        val root = connect(sambaConfigurationProperties.videoStoreNas.url, context)
-        return resolveBaseDir(root, sambaConfigurationProperties.videoStoreNas.baseDir)
+        return connect(sambaConfigurationProperties.videoStoreNas.url, context)
     }
 
     fun originalStoreNas(): SmbResource {
@@ -35,19 +34,31 @@ class SambaClient(
                 sambaConfigurationProperties.originalStoreNas.username,
                 sambaConfigurationProperties.originalStoreNas.password,
             )
-        val root = connect(sambaConfigurationProperties.originalStoreNas.url, context)
-        return resolveBaseDir(root, sambaConfigurationProperties.originalStoreNas.baseDir)
+        return connect(sambaConfigurationProperties.originalStoreNas.url, context)
+    }
+
+    /**
+     * videoStoreNas()/originalStoreNas() は共有ルートを返すだけで baseDir を解決しないため、
+     * DB に永続化するパス (CreatedFile.file など) はこれで baseDir を織り込んだ、共有ルートからの
+     * 相対パスとして組み立てる。videoStoreNas()/originalStoreNas() で resolve するどのパスも
+     * baseDir を含んでいる前提になる。
+     */
+    fun resolvePathUnderBaseDir(
+        nasType: NasType,
+        relativePath: String,
+    ): String {
+        val baseDir =
+            when (nasType) {
+                NasType.VIDEO_STORE_NAS -> sambaConfigurationProperties.videoStoreNas.baseDir
+                NasType.ORIGINAL_STORE_NAS -> sambaConfigurationProperties.originalStoreNas.baseDir
+            }
+        return if (baseDir.isBlank()) relativePath else "${baseDir.trim('/')}/$relativePath"
     }
 
     private fun connect(
         url: String,
         context: CIFSContext,
     ): SmbFile = SmbFile(if (url.endsWith("/")) url else "$url/", context)
-
-    private fun resolveBaseDir(
-        root: SmbFile,
-        baseDir: String,
-    ): SmbResource = if (baseDir.isBlank()) root else root.resolve(baseDir.trim('/') + "/")
 
     private fun cifsContext(
         username: String,

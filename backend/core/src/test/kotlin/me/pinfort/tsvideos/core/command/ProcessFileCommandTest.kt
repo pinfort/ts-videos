@@ -42,6 +42,7 @@ class ProcessFileCommandTest :
         lateinit var amatsukazeAddTaskClient: AmatsukazeAddTaskClient
         lateinit var durationProbeClient: DurationProbeClient
         lateinit var nasComponent: NasComponent
+        lateinit var sambaClient: SambaClient
         lateinit var logger: Logger
         lateinit var processFileCommand: ProcessFileCommand
 
@@ -71,7 +72,9 @@ class ProcessFileCommandTest :
             amatsukazeAddTaskClient = mockk()
             durationProbeClient = mockk()
             nasComponent = mockk()
+            sambaClient = mockk()
             logger = mockk(relaxed = true)
+            every { sambaClient.resolvePathUnderBaseDir(any(), any()) } answers { secondArg() }
             processFileCommand =
                 ProcessFileCommand(
                     executedFileCommand = executedFileCommand,
@@ -85,6 +88,7 @@ class ProcessFileCommandTest :
                     mainSplittedFileFinderComponent = MainSplittedFileFinderComponent(),
                     compressComponent = CompressComponent(logger),
                     nasComponent = nasComponent,
+                    sambaClient = sambaClient,
                     directoryNameComponent = DirectoryNameComponent(NormalizeComponent()),
                     processorToolConfigurationProperties = properties,
                     logger = logger,
@@ -151,6 +155,10 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.updateStatus(any(), any(), any()) } returns executedFile
                 every { splittedFileCommand.updateStatus(any(), any(), any()) } answers { firstArg() }
 
+                every {
+                    sambaClient.resolvePathUnderBaseDir(SambaClient.NasType.ORIGINAL_STORE_NAS, any())
+                } answers { "nas-base-dir/${secondArg<String>()}" }
+
                 every { nasComponent.uploadResource(any(), any(), any(), any()) } returns true
                 every {
                     createdFileCommand.insert(any(), any(), any(), any(), any(), any())
@@ -173,6 +181,18 @@ class ProcessFileCommandTest :
                 result shouldBe ProcessFileCommand.Result.PROCESSED
                 verify { amatsukazeAddTaskClient.addTask(any(), any(), "30fps_light") }
                 verify(exactly = 0) { executedFileCommand.delete(any(), any()) }
+                // the file stored in created_file must include the NAS baseDir, matching the physical upload location
+                verify {
+                    nasComponent.uploadResource(
+                        any(),
+                        match { it.startsWith("nas-base-dir/") },
+                        SambaClient.NasType.ORIGINAL_STORE_NAS,
+                        any(),
+                    )
+                }
+                verify {
+                    createdFileCommand.insert(200, match { it.startsWith("nas-base-dir/") }, any(), any(), any(), any())
+                }
             }
         }
 
