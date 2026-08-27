@@ -47,5 +47,20 @@ class CompressComponentTest :
                 result shouldBe true
                 GZIPInputStream(compressed.inputStream()).use { it.readBytes() } shouldBe "hello".toByteArray()
             }
+
+            expect("reports progress up to the total byte count while compressing") {
+                val original = File.createTempFile("compress-test", ".m2ts")
+                original.writeBytes("hello ts video data".toByteArray())
+                val compressed = File.createTempFile("compress-test", ".m2ts.gz")
+                compressed.delete()
+                val reported = mutableListOf<Pair<Long, Long>>()
+
+                val result = compressComponent.compress(original, compressed, false) { transferred, total -> reported.add(transferred to total) }
+
+                result shouldBe true
+                reported.isEmpty() shouldBe false
+                reported.first() shouldBe (0L to original.length())
+                reported.last() shouldBe (original.length() to original.length())
+            }
         }
     })
