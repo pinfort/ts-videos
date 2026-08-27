@@ -8,36 +8,36 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
-import me.pinfort.tsvideos.processor.infrastructure.pipeline.ProcessPathService
+import me.pinfort.tsvideos.processor.infrastructure.pipeline.PathProcessingRunner
 import java.nio.file.Path
 
 class ProcessCommandTest :
     ExpectSpec({
-        lateinit var processPathService: ProcessPathService
+        lateinit var pathProcessingRunner: PathProcessingRunner
         lateinit var processCommand: ProcessCommand
 
         beforeTest {
             clearAllMocks()
-            processPathService = mockk()
-            processCommand = ProcessCommand(processPathService)
+            pathProcessingRunner = mockk()
+            processCommand = ProcessCommand(pathProcessingRunner)
         }
 
         context("run") {
             expect("processes every positional path argument") {
-                every { processPathService.processPath(any(), any(), any(), any()) } just Runs
+                every { pathProcessingRunner.processPath(any(), any(), any(), any()) } just Runs
 
                 processCommand.main(arrayOf("/path/one", "/path/two"))
 
-                verify { processPathService.processPath(Path.of("/path/one"), false, any(), any()) }
-                verify { processPathService.processPath(Path.of("/path/two"), false, any(), any()) }
+                verify { pathProcessingRunner.processPath(Path.of("/path/one"), false, any(), any()) }
+                verify { pathProcessingRunner.processPath(Path.of("/path/two"), false, any(), any()) }
             }
 
             expect("threads the dry-run flag through") {
-                every { processPathService.processPath(any(), any(), any(), any()) } just Runs
+                every { pathProcessingRunner.processPath(any(), any(), any(), any()) } just Runs
 
                 processCommand.main(arrayOf("--dry-run", "/path/one"))
 
-                verify { processPathService.processPath(Path.of("/path/one"), true, any(), any()) }
+                verify { pathProcessingRunner.processPath(Path.of("/path/one"), true, any(), any()) }
             }
         }
     })
