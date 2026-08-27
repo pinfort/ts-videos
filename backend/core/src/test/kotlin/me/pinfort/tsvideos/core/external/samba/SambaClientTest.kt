@@ -26,31 +26,38 @@ class SambaClientTest :
         }
 
         context("videoStoreNas") {
-            expect("returns the share root when baseDir is blank") {
-                sambaClient("").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/"
+            expect("returns the share root regardless of baseDir") {
+                sambaClient("foo/bar").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/"
             }
 
-            expect("resolves baseDir under the share root") {
-                sambaClient("foo").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/"
-            }
-
-            expect("resolves a nested baseDir") {
-                sambaClient("foo/bar").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/bar/"
-            }
-
-            expect("trims leading and trailing slashes from baseDir") {
-                sambaClient("/foo/bar/").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/bar/"
-            }
-
-            expect("resolves baseDir under the share root when the configured url has no trailing slash") {
+            expect("normalizes the share root when the configured url has no trailing slash") {
                 sambaClient("foo", url = "smb://localhost:139/alice").videoStoreNas().locator.path shouldBe
-                    "smb://localhost:139/alice/foo/"
+                    "smb://localhost:139/alice/"
             }
         }
 
         context("originalStoreNas") {
-            expect("resolves baseDir under the share root") {
-                sambaClient("baz").originalStoreNas().locator.path shouldBe "smb://localhost/video-store/baz/"
+            expect("returns the share root regardless of baseDir") {
+                sambaClient("baz").originalStoreNas().locator.path shouldBe "smb://localhost/video-store/"
+            }
+        }
+
+        context("resolvePathUnderBaseDir") {
+            expect("returns the relative path unchanged when baseDir is blank") {
+                sambaClient("").resolvePathUnderBaseDir(SambaClient.NasType.VIDEO_STORE_NAS, "bucket/program/file.mp4") shouldBe
+                    "bucket/program/file.mp4"
+            }
+
+            expect("prefixes the relative path with baseDir") {
+                sambaClient("foo").resolvePathUnderBaseDir(SambaClient.NasType.VIDEO_STORE_NAS, "bucket/program/file.mp4") shouldBe
+                    "foo/bucket/program/file.mp4"
+            }
+
+            expect("trims leading and trailing slashes from baseDir") {
+                sambaClient("/foo/bar/").resolvePathUnderBaseDir(
+                    SambaClient.NasType.ORIGINAL_STORE_NAS,
+                    "bucket/program/file.gz",
+                ) shouldBe "foo/bar/bucket/program/file.gz"
             }
         }
     })
