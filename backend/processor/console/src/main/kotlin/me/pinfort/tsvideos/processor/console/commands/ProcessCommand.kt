@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import me.pinfort.tsvideos.processor.console.display.ProgressPrinter
 import me.pinfort.tsvideos.processor.infrastructure.pipeline.ProcessPathService
 import org.springframework.stereotype.Component
 import java.nio.file.Path
@@ -25,36 +26,6 @@ class ProcessCommand(
     override fun run() {
         paths.forEach {
             processPathService.processPath(Path.of(it), dryRun, compressProgressPrinter::render, uploadProgressPrinter::render)
-        }
-    }
-
-    private class ProgressPrinter(
-        private val label: String,
-    ) {
-        private var lastRenderedPercent: Int? = null
-        private var lastTotalBytes: Long? = null
-
-        fun render(
-            bytesTransferred: Long,
-            totalBytes: Long,
-        ) {
-            if (totalBytes <= 0) return
-            if (totalBytes != lastTotalBytes) {
-                lastTotalBytes = totalBytes
-                lastRenderedPercent = null
-            }
-            val percent = (bytesTransferred * 100 / totalBytes).toInt().coerceIn(0, 100)
-            if (percent == lastRenderedPercent) return
-            lastRenderedPercent = percent
-            val filled = PROGRESS_BAR_WIDTH * percent / 100
-            val bar = "#".repeat(filled) + "-".repeat(PROGRESS_BAR_WIDTH - filled)
-            print("\r$label [$bar] $percent%")
-            System.out.flush()
-            if (percent >= 100) println()
-        }
-
-        private companion object {
-            const val PROGRESS_BAR_WIDTH = 30
         }
     }
 }
