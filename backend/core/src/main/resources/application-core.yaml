@@ -18,10 +18,12 @@ samba:
     url: ${VIDEO_STORE_NAS_URL:smb://localhost:139/alice}
     username: ${VIDEO_STORE_NAS_USERNAME:pinfort}
     password: ${VIDEO_STORE_NAS_PASSWORD:password}
+    base-dir: ${VIDEO_STORE_NAS_BASE_DIR:}
   original-store-nas:
     url: ${ORIGINAL_STORE_NAS_URL:smb://localhost:139/bob}
     username: ${ORIGINAL_STORE_NAS_USERNAME:pinfort}
     password: ${ORIGINAL_STORE_NAS_PASSWORD:password}
+    base-dir: ${ORIGINAL_STORE_NAS_BASE_DIR:}
 processor-tool:
   ts-drop-chk-path: ${TS_DROP_CHK_PATH:C:\tools\tsDropChk\tsDropChkx64.exe}
   ts-splitter-path: ${TS_SPLITTER_PATH:C:\tools\TsSplitter\TsSplitter.exe}

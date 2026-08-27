@@ -1,6 +1,7 @@
 package me.pinfort.tsvideos.core.external.samba
 
 import jcifs.CIFSContext
+import jcifs.SmbResource
 import jcifs.config.PropertyConfiguration
 import jcifs.context.BaseContext
 import jcifs.smb.NtlmPasswordAuthenticator
@@ -18,28 +19,35 @@ class SambaClient(
         ORIGINAL_STORE_NAS,
     }
 
-    fun videoStoreNas(): SmbFile {
+    fun videoStoreNas(): SmbResource {
         val context =
             cifsContext(
                 sambaConfigurationProperties.videoStoreNas.username,
                 sambaConfigurationProperties.videoStoreNas.password,
             )
-        return connect(sambaConfigurationProperties.videoStoreNas.url, context)
+        val root = connect(sambaConfigurationProperties.videoStoreNas.url, context)
+        return resolveBaseDir(root, sambaConfigurationProperties.videoStoreNas.baseDir)
     }
 
-    fun originalStoreNas(): SmbFile {
+    fun originalStoreNas(): SmbResource {
         val context =
             cifsContext(
                 sambaConfigurationProperties.originalStoreNas.username,
                 sambaConfigurationProperties.originalStoreNas.password,
             )
-        return connect(sambaConfigurationProperties.originalStoreNas.url, context)
+        val root = connect(sambaConfigurationProperties.originalStoreNas.url, context)
+        return resolveBaseDir(root, sambaConfigurationProperties.originalStoreNas.baseDir)
     }
 
     private fun connect(
         url: String,
         context: CIFSContext,
     ): SmbFile = SmbFile(url, context)
+
+    private fun resolveBaseDir(
+        root: SmbFile,
+        baseDir: String,
+    ): SmbResource = if (baseDir.isBlank()) root else root.resolve(baseDir.trim('/') + "/")
 
     private fun cifsContext(
         username: String,
