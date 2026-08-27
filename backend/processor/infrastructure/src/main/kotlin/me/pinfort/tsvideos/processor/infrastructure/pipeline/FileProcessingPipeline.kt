@@ -67,13 +67,22 @@ class FileProcessingPipeline(
         onCompressProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
         onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ): Result {
-        val dropChkOutcome =
+        // 成功した段のロールバックを新しい順に積み、失敗時は「失敗した段自身 -> それ以前の段」の順で実行する。
+        val completedRollbacks = ArrayDeque<() -> Unit>()
+
+        fun <T> stage(
+            rollback: () -> Unit,
+            body: () -> T,
+        ): T =
             try {
-                dropChk(file, dryRun)
+                body().also { completedRollbacks.addFirst(rollback) }
             } catch (e: Exception) {
-                rollbackDropChk(file, dryRun)
+                rollback()
+                completedRollbacks.forEach { it() }
                 throw e
             }
+
+        val dropChkOutcome = stage({ rollbackDropChk(file, dryRun) }) { dropChk(file, dryRun) }
 
         val executedFile =
             when (dropChkOutcome) {
@@ -84,32 +93,14 @@ class FileProcessingPipeline(
                 is DropChkOutcome.Registered -> dropChkOutcome.executedFile
             }
 
-        val mainSplittedFile =
-            try {
-                tsSplit(executedFile, dryRun)
-            } catch (e: Exception) {
-                rollbackTsSplit(executedFile, dryRun)
-                rollbackDropChk(file, dryRun)
-                throw e
-            }
+        val mainSplittedFile = stage({ rollbackTsSplit(executedFile, dryRun) }) { tsSplit(executedFile, dryRun) }
 
-        try {
+        stage({ rollbackCompressAndSave(mainSplittedFile, dryRun) }) {
             compressAndSave(mainSplittedFile, dryRun, onCompressProgress, onUploadProgress)
-        } catch (e: Exception) {
-            rollbackCompressAndSave(mainSplittedFile, dryRun)
-            rollbackTsSplit(executedFile, dryRun)
-            rollbackDropChk(file, dryRun)
-            throw e
         }
 
-        try {
+        stage({ rollbackAmatsukazeAddTask(mainSplittedFile) }) {
             amatsukazeAddTask(mainSplittedFile)
-        } catch (e: Exception) {
-            rollbackAmatsukazeAddTask(mainSplittedFile)
-            rollbackCompressAndSave(mainSplittedFile, dryRun)
-            rollbackTsSplit(executedFile, dryRun)
-            rollbackDropChk(file, dryRun)
-            throw e
         }
 
         return Result.PROCESSED
