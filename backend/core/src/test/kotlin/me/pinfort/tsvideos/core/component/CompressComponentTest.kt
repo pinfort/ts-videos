@@ -55,7 +55,12 @@ class CompressComponentTest :
                 compressed.delete()
                 val reported = mutableListOf<Pair<Long, Long>>()
 
-                val result = compressComponent.compress(original, compressed, false) { transferred, total -> reported.add(transferred to total) }
+                val result =
+                    compressComponent.compress(original, compressed, false) { transferred, total ->
+                        reported.add(
+                            transferred to total,
+                        )
+                    }
 
                 result shouldBe true
                 reported.isEmpty() shouldBe false
