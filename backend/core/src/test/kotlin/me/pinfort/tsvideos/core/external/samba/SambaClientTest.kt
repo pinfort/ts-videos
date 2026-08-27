@@ -24,25 +24,25 @@ class SambaClientTest :
 
         context("videoStoreNas") {
             expect("returns the share root when baseDir is blank") {
-                sambaClient("").videoStoreNas().path shouldBe "smb://localhost/video-store/"
+                sambaClient("").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/"
             }
 
             expect("resolves baseDir under the share root") {
-                sambaClient("foo").videoStoreNas().path shouldBe "smb://localhost/video-store/foo/"
+                sambaClient("foo").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/"
             }
 
             expect("resolves a nested baseDir") {
-                sambaClient("foo/bar").videoStoreNas().path shouldBe "smb://localhost/video-store/foo/bar/"
+                sambaClient("foo/bar").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/bar/"
             }
 
             expect("trims leading and trailing slashes from baseDir") {
-                sambaClient("/foo/bar/").videoStoreNas().path shouldBe "smb://localhost/video-store/foo/bar/"
+                sambaClient("/foo/bar/").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/bar/"
             }
         }
 
         context("originalStoreNas") {
             expect("resolves baseDir under the share root") {
-                sambaClient("baz").originalStoreNas().path shouldBe "smb://localhost/video-store/baz/"
+                sambaClient("baz").originalStoreNas().locator.path shouldBe "smb://localhost/video-store/baz/"
             }
         }
     })
