@@ -151,7 +151,7 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.updateStatus(any(), any(), any()) } returns executedFile
                 every { splittedFileCommand.updateStatus(any(), any(), any()) } answers { firstArg() }
 
-                every { nasComponent.uploadResource(any(), any(), any()) } returns true
+                every { nasComponent.uploadResource(any(), any(), any(), any()) } returns true
                 every {
                     createdFileCommand.insert(any(), any(), any(), any(), any(), any())
                 } returns
@@ -279,7 +279,7 @@ class ProcessFileCommandTest :
 
                 result shouldBe ProcessFileCommand.Result.PROCESSED
                 verify(exactly = 0) { createdFileCommand.insert(any(), any(), any(), any(), any(), any()) }
-                verify(exactly = 0) { nasComponent.uploadResource(any(), any(), any()) }
+                verify(exactly = 0) { nasComponent.uploadResource(any(), any(), any(), any()) }
                 verify { amatsukazeAddTaskClient.addTask(any(), any(), any()) }
             }
         }
@@ -323,7 +323,7 @@ class ProcessFileCommandTest :
                 every { executedFileCommand.updateStatus(any(), any(), any()) } returns executedFile
                 every { splittedFileCommand.updateStatus(any(), any(), any()) } answers { firstArg() }
 
-                every { nasComponent.uploadResource(any(), any(), any()) } returns true
+                every { nasComponent.uploadResource(any(), any(), any(), any()) } returns true
                 every {
                     createdFileCommand.insert(any(), any(), any(), any(), any(), any())
                 } returns

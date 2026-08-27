@@ -59,6 +59,7 @@ class ProcessFileCommand(
     fun processFile(
         file: File,
         dryRun: Boolean = false,
+        onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ): Result {
         val dropChkOutcome =
             try {
@@ -87,7 +88,7 @@ class ProcessFileCommand(
             }
 
         try {
-            compressAndSave(mainSplittedFile, dryRun)
+            compressAndSave(mainSplittedFile, dryRun, onUploadProgress)
         } catch (e: Exception) {
             rollbackCompressAndSave(mainSplittedFile, dryRun)
             rollbackTsSplit(executedFile, dryRun)
@@ -218,6 +219,7 @@ class ProcessFileCommand(
     private fun compressAndSave(
         splittedFile: SplittedFile,
         dryRun: Boolean,
+        onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit,
     ) {
         val splitFile = File(splittedFile.file)
         val compressedFile = File(splitFile.parentFile, "${splitFile.name}.gz")
@@ -234,7 +236,7 @@ class ProcessFileCommand(
         val programDirectory = directoryNameComponent.programDirectoryName(tssplitterDir)
         val targetFile = "$bucket/$programDirectory/${compressedFile.name}"
 
-        nasComponent.uploadResource(compressedFile, targetFile, SambaClient.NasType.ORIGINAL_STORE_NAS)
+        nasComponent.uploadResource(compressedFile, targetFile, SambaClient.NasType.ORIGINAL_STORE_NAS, onUploadProgress)
         createdFileCommand.insert(splittedFile.id, targetFile, compressedFile.length(), "video/vnd.dlna.mpeg-tts", "gzip", dryRun)
         splittedFileCommand.updateStatus(splittedFile, SplittedFile.Status.COMPRESS_SAVED, dryRun)
         compressedFile.delete()

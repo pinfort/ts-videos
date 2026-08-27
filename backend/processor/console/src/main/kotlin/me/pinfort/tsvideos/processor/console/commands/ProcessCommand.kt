@@ -20,6 +20,22 @@ class ProcessCommand(
     private val dryRun by option("-d", "--dry-run").flag(default = false)
 
     override fun run() {
-        paths.forEach { processPathService.processPath(Path.of(it), dryRun) }
+        paths.forEach { processPathService.processPath(Path.of(it), dryRun, ::printUploadProgress) }
+    }
+
+    private fun printUploadProgress(
+        bytesTransferred: Long,
+        totalBytes: Long,
+    ) {
+        if (totalBytes <= 0) return
+        val percent = (bytesTransferred * 100 / totalBytes).toInt().coerceIn(0, 100)
+        val filled = PROGRESS_BAR_WIDTH * percent / 100
+        val bar = "#".repeat(filled) + "-".repeat(PROGRESS_BAR_WIDTH - filled)
+        print("\rUploading [$bar] $percent%")
+        if (bytesTransferred >= totalBytes) println()
+    }
+
+    private companion object {
+        const val PROGRESS_BAR_WIDTH = 30
     }
 }
