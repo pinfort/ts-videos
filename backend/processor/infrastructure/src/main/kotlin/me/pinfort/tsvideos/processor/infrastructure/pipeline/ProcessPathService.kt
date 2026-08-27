@@ -16,6 +16,7 @@ class ProcessPathService(
     fun processPath(
         path: Path,
         dryRun: Boolean = false,
+        onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ) {
         val target = path.toFile()
         if (!target.exists()) {
@@ -26,7 +27,7 @@ class ProcessPathService(
 
         resolveFiles(target).forEach { file ->
             try {
-                processFileCommand.processFile(file, dryRun)
+                processFileCommand.processFile(file, dryRun, onUploadProgress)
             } catch (e: Exception) {
                 logger.error("processing file failed, file=$file", e)
                 val message = "processing file failed. file:$file reason:${e.message}\nstackTrace:\n```\n${e.stackTraceToString()}\n```"

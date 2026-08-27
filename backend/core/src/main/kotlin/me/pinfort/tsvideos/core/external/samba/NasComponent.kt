@@ -14,6 +14,11 @@ class NasComponent(
     private val videoStoreNas = sambaClient.videoStoreNas()
     private val originalStoreNas = sambaClient.originalStoreNas()
 
+    companion object {
+        private const val UPLOAD_BUFFER_SIZE = 8 * 1024
+        private val NO_OP_PROGRESS_LISTENER: (Long, Long) -> Unit = { _, _ -> }
+    }
+
     fun getResource(file: String): SmbResource {
         // replace because windows path using '\'
         val resource = videoStoreNas.resolve(file.replace('\\', '/'))
@@ -64,6 +69,13 @@ class NasComponent(
         localFile: File,
         targetFile: String,
         nasType: SambaClient.NasType,
+    ): Boolean = uploadResource(localFile, targetFile, nasType, NO_OP_PROGRESS_LISTENER)
+
+    fun uploadResource(
+        localFile: File,
+        targetFile: String,
+        nasType: SambaClient.NasType,
+        onProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit,
     ): Boolean {
         val nas =
             when (nasType) {
@@ -76,8 +88,20 @@ class NasComponent(
             return false
         }
         createDirectories(targetFile, nasType)
+        val totalBytes = localFile.length()
         resource.openOutputStream().use { out ->
-            localFile.inputStream().buffered().use { it.copyTo(out) }
+            localFile.inputStream().buffered().use { input ->
+                val buffer = ByteArray(UPLOAD_BUFFER_SIZE)
+                var transferred = 0L
+                onProgress(transferred, totalBytes)
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read == -1) break
+                    out.write(buffer, 0, read)
+                    transferred += read
+                    onProgress(transferred, totalBytes)
+                }
+            }
         }
         logger.info("Upload file, localFile=$localFile, targetFile=$targetFile")
         return true
