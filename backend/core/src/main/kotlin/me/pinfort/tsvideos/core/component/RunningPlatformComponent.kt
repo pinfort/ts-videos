@@ -6,5 +6,5 @@ import org.springframework.stereotype.Component
 class RunningPlatformComponent {
     private val os = System.getProperty("os.name").lowercase() // java.lang.Systemはmockkstaticできないのでテストしない
 
-    fun runningOnWindows(): Boolean = os == "windows"
+    fun runningOnWindows(): Boolean = os.startsWith("windows")
 }
