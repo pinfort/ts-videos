@@ -60,6 +60,7 @@ class ProcessFileCommand(
     fun processFile(
         file: File,
         dryRun: Boolean = false,
+        onCompressProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
         onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit = { _, _ -> },
     ): Result {
         val dropChkOutcome =
@@ -89,7 +90,7 @@ class ProcessFileCommand(
             }
 
         try {
-            compressAndSave(mainSplittedFile, dryRun, onUploadProgress)
+            compressAndSave(mainSplittedFile, dryRun, onCompressProgress, onUploadProgress)
         } catch (e: Exception) {
             rollbackCompressAndSave(mainSplittedFile, dryRun)
             rollbackTsSplit(executedFile, dryRun)
@@ -220,12 +221,13 @@ class ProcessFileCommand(
     private fun compressAndSave(
         splittedFile: SplittedFile,
         dryRun: Boolean,
+        onCompressProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit,
         onUploadProgress: (bytesTransferred: Long, totalBytes: Long) -> Unit,
     ) {
         val splitFile = File(splittedFile.file)
         val compressedFile = File(splitFile.parentFile, "${splitFile.name}.gz")
 
-        if (!compressComponent.compress(splitFile, compressedFile)) {
+        if (!compressComponent.compress(splitFile, compressedFile, false, onCompressProgress)) {
             logger.error("Compress skipped, compressed file already exists, splitFile=$splitFile")
             return
         }

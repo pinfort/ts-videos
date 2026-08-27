@@ -24,20 +24,20 @@ class ProcessCommandTest :
 
         context("run") {
             expect("processes every positional path argument") {
-                every { processPathService.processPath(any(), any(), any()) } just Runs
+                every { processPathService.processPath(any(), any(), any(), any()) } just Runs
 
                 processCommand.main(arrayOf("/path/one", "/path/two"))
 
-                verify { processPathService.processPath(Path.of("/path/one"), false, any()) }
-                verify { processPathService.processPath(Path.of("/path/two"), false, any()) }
+                verify { processPathService.processPath(Path.of("/path/one"), false, any(), any()) }
+                verify { processPathService.processPath(Path.of("/path/two"), false, any(), any()) }
             }
 
             expect("threads the dry-run flag through") {
-                every { processPathService.processPath(any(), any(), any()) } just Runs
+                every { processPathService.processPath(any(), any(), any(), any()) } just Runs
 
                 processCommand.main(arrayOf("--dry-run", "/path/one"))
 
-                verify { processPathService.processPath(Path.of("/path/one"), true, any()) }
+                verify { processPathService.processPath(Path.of("/path/one"), true, any(), any()) }
             }
         }
     })
