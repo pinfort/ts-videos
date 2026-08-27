@@ -1,3 +1,12 @@
 spring:
   main:
     web-application-type: none
+    banner-mode: "off"
+    lazy-initialization: true
+    log-startup-info: false
+logging:
+  level:
+    root: warn
+    me:
+      pinfort:
+        tsvideos: info
