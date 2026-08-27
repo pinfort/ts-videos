@@ -42,7 +42,7 @@ class SambaClient(
     private fun connect(
         url: String,
         context: CIFSContext,
-    ): SmbFile = SmbFile(url, context)
+    ): SmbFile = SmbFile(if (url.endsWith("/")) url else "$url/", context)
 
     private fun resolveBaseDir(
         root: SmbFile,

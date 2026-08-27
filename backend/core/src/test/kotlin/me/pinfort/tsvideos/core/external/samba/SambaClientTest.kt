@@ -6,10 +6,13 @@ import me.pinfort.tsvideos.core.config.SambaConfigurationProperties
 
 class SambaClientTest :
     ExpectSpec({
-        fun sambaClient(baseDir: String): SambaClient {
+        fun sambaClient(
+            baseDir: String,
+            url: String = "smb://localhost/video-store/",
+        ): SambaClient {
             val server =
                 SambaConfigurationProperties.Server(
-                    url = "smb://localhost/video-store/",
+                    url = url,
                     username = "user",
                     password = "password",
                     baseDir = baseDir,
@@ -37,6 +40,11 @@ class SambaClientTest :
 
             expect("trims leading and trailing slashes from baseDir") {
                 sambaClient("/foo/bar/").videoStoreNas().locator.path shouldBe "smb://localhost/video-store/foo/bar/"
+            }
+
+            expect("resolves baseDir under the share root when the configured url has no trailing slash") {
+                sambaClient("foo", url = "smb://localhost:139/alice").videoStoreNas().locator.path shouldBe
+                    "smb://localhost:139/alice/foo/"
             }
         }
 
