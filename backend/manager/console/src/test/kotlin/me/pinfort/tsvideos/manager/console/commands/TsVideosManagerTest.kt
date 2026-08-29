@@ -1,7 +1,11 @@
 package me.pinfort.tsvideos.manager.console.commands
 
+import com.github.ajalt.clikt.core.PrintMessage
 import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.core.parse
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.string.shouldContain
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -15,6 +19,7 @@ import me.pinfort.tsvideos.core.component.DirectoryNameComponent
 import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
+import me.pinfort.tsvideos.core.version.ApplicationVersion
 import me.pinfort.tsvideos.manager.console.component.ProgramDetailToTextComponent
 import me.pinfort.tsvideos.manager.console.component.TerminalTextColorComponent
 import me.pinfort.tsvideos.manager.console.component.UserQuestionComponent
@@ -145,6 +150,12 @@ class TsVideosManagerTest :
                 verify(exactly = 1) {
                     programCommand.moveCreatedFiles(dummyProgram, "newDirectory", false)
                 }
+            }
+
+            expect("version") {
+                val exception = shouldThrow<PrintMessage> { tsVideosManager.parse(arrayOf("--version")) }
+
+                exception.message shouldContain "tvmcli version ${ApplicationVersion.value}"
             }
         }
     })

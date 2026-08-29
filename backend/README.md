@@ -26,3 +26,12 @@ DB や NAS の接続先を変える場合は、以下の環境変数で上書き
 - `./gradlew build` - 全モジュールをビルド
 - `./gradlew test` - テストを実行（テストは Testcontainers で MariaDB を起動するため Docker が必要）
 - `./gradlew ktlintCheck` - Kotlin のコードスタイルチェック
+
+## CLI のバージョン確認
+
+`tvmcli`（`manager:console`）と `tvpcli`（`processor:console`）は `--version` でバージョンと git コミットハッシュを `tvmcli version 0.0.1-SNAPSHOT (d87cab7)` の形式で表示します。どちらもビルド時に `core` のリソース（`version.properties`）へ埋め込まれます（バージョンは Gradle プロジェクトバージョン、コミットハッシュは `git rev-parse --short HEAD`）。git リポジトリ外でビルドした場合（Docker ビルドなど）はコミットハッシュが取得できないため、バージョンのみを表示します。
+
+```bash
+./gradlew manager:console:bootRun --args="--version"
+./gradlew processor:console:bootRun --args="--version"
+```

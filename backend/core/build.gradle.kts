@@ -13,6 +13,48 @@ tasks.bootJar {
     enabled = false
 }
 
+/**
+ * ビルド時のgitコミットハッシュ。gitリポジトリ外（Dockerビルドなど）では "unknown" になる。
+ */
+abstract class GitCommitHashValueSource : ValueSource<String, GitCommitHashValueSource.Parameters> {
+    interface Parameters : ValueSourceParameters {
+        val workingDirectory: DirectoryProperty
+    }
+
+    override fun obtain(): String =
+        runCatching {
+            val process =
+                ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+                    .directory(parameters.workingDirectory.get().asFile)
+                    .redirectErrorStream(true)
+                    .start()
+            val output =
+                process.inputStream
+                    .bufferedReader()
+                    .use { it.readText() }
+                    .trim()
+            output.takeIf { process.waitFor() == 0 && it.isNotBlank() }
+        }.getOrNull() ?: "unknown"
+}
+
+val gitCommitHash =
+    providers.of(GitCommitHashValueSource::class.java) {
+        parameters.workingDirectory.set(layout.projectDirectory)
+    }
+
+// CLIの--versionが参照するバージョン情報をリソースとして埋め込む
+val generateVersionProperties by tasks.registering(WriteProperties::class) {
+    destinationFile = layout.buildDirectory.file("generated/version/version.properties")
+    property("version", project.version.toString())
+    property("commit", gitCommitHash)
+}
+
+tasks.processResources {
+    from(generateVersionProperties) {
+        into("me/pinfort/tsvideos/core")
+    }
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
