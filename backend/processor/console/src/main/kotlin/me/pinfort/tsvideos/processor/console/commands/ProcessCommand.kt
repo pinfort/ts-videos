@@ -6,6 +6,8 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.versionOption
+import me.pinfort.tsvideos.core.version.ApplicationVersion
 import me.pinfort.tsvideos.processor.console.display.ProgressPrinter
 import me.pinfort.tsvideos.processor.infrastructure.pipeline.PathProcessingRunner
 import org.springframework.stereotype.Component
@@ -15,6 +17,10 @@ import java.nio.file.Path
 class ProcessCommand(
     private val pathProcessingRunner: PathProcessingRunner,
 ) : CliktCommand(name = "tvpcli") {
+    init {
+        versionOption(ApplicationVersion.value)
+    }
+
     override fun help(context: Context): String = "process ts recording files (drop check -> split -> compress -> encode queue)"
 
     private val paths by argument("paths", help = "file or directory containing .m2ts files").multiple(required = true)

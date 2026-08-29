@@ -2,6 +2,8 @@ package me.pinfort.tsvideos.manager.console.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.parameters.options.versionOption
+import me.pinfort.tsvideos.core.version.ApplicationVersion
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,6 +15,7 @@ class TsVideosManager(
 ) : CliktCommand(name = "tvmcli") {
     init {
         subcommands(search, get, delete, modify)
+        versionOption(ApplicationVersion.value)
     }
 
     override fun run() = Unit
