@@ -32,3 +32,15 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.mockk)
 }
+
+// Clikt(mordant)の端末制御がJNA経由でSystem.loadを呼ぶため、JDK24以降では
+// 制限付きメソッドの警告が出る。実行可能ジャー/bootRunに明示的にネイティブアクセスを許可する。
+tasks.bootJar {
+    manifest {
+        attributes("Enable-Native-Access" to "ALL-UNNAMED")
+    }
+}
+
+tasks.bootRun {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
