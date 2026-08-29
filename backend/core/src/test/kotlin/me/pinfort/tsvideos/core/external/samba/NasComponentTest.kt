@@ -33,6 +33,40 @@ class NasComponentTest :
             nasComponent = NasComponent(sambaClient, logger)
         }
 
+        context("resourceExists") {
+            expect("true when the file is on the video store nas") {
+                val resource = mockk<SmbResource>()
+                every { videoStoreNas.resolve("a/bucket/file.mp4") } returns resource
+                every { resource.exists() } returns true
+
+                nasComponent.resourceExists("a\\bucket\\file.mp4") shouldBe true
+
+                verify(exactly = 0) { originalStoreNas.resolve(any()) }
+            }
+
+            expect("true when the file is only on the original store nas") {
+                val videoResource = mockk<SmbResource>()
+                val originalResource = mockk<SmbResource>()
+                every { videoStoreNas.resolve("a/bucket/file.gz") } returns videoResource
+                every { videoResource.exists() } returns false
+                every { originalStoreNas.resolve("a/bucket/file.gz") } returns originalResource
+                every { originalResource.exists() } returns true
+
+                nasComponent.resourceExists("a/bucket/file.gz") shouldBe true
+            }
+
+            expect("false when the file is on neither nas") {
+                val videoResource = mockk<SmbResource>()
+                val originalResource = mockk<SmbResource>()
+                every { videoStoreNas.resolve("a/bucket/file.mp4") } returns videoResource
+                every { videoResource.exists() } returns false
+                every { originalStoreNas.resolve("a/bucket/file.mp4") } returns originalResource
+                every { originalResource.exists() } returns false
+
+                nasComponent.resourceExists("a/bucket/file.mp4") shouldBe false
+            }
+        }
+
         context("uploadResource") {
             expect("skip when target already exists") {
                 val resource = mockk<SmbResource>()

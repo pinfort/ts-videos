@@ -204,6 +204,50 @@ class ProgramCommandTest :
             }
         }
 
+        context("findByExecutedFileId") {
+            expect("success") {
+                every { programMapper.findByExecutedFileId(any()) } returns programDto
+                every { programConverter.convert(any()) } returns program
+
+                programCommand.findByExecutedFileId(2) shouldBe program
+
+                verifySequence {
+                    programMapper.findByExecutedFileId(2)
+                    programConverter.convert(programDto)
+                }
+            }
+
+            expect("noHit") {
+                every { programMapper.findByExecutedFileId(any()) } returns null
+
+                programCommand.findByExecutedFileId(2) shouldBe null
+
+                verify(exactly = 0) { programConverter.convert(any()) }
+            }
+        }
+
+        context("updateStatusByExecutedFileId") {
+            expect("success") {
+                every { programMapper.updateStatusByExecutedFileId(any(), any()) } returns 1
+                every { logger.info(any()) } just Runs
+
+                programCommand.updateStatusByExecutedFileId(2, Program.Status.COMPLETED)
+
+                verifySequence {
+                    programMapper.updateStatusByExecutedFileId(2, "COMPLETED")
+                    logger.info(any())
+                }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                programCommand.updateStatusByExecutedFileId(2, Program.Status.ERROR, true)
+
+                verify(exactly = 0) { programMapper.updateStatusByExecutedFileId(any(), any()) }
+            }
+        }
+
         context("insert") {
             expect("success") {
                 every {

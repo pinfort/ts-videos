@@ -448,5 +448,50 @@ class ProgramMapperTest : ExpectSpec() {
                 actual shouldBe null
             }
         }
+
+        context("updateStatusByExecutedFileId") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(2,'esta',2,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
+
+                programMapper.updateStatusByExecutedFileId(1, "COMPLETED")
+                connection.commit()
+
+                programMapper.find(1)?.status shouldBe ProgramDto.Status.COMPLETED
+                programMapper.find(2)?.status shouldBe ProgramDto.Status.REGISTERED
+                connection.close()
+            }
+
+            expect("nothingHasUpdated") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM program").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO program(id,name,executed_file_id,status) VALUES(1,'test',1,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
+
+                programMapper.updateStatusByExecutedFileId(2, "COMPLETED")
+                connection.commit()
+
+                programMapper.find(1)?.status shouldBe ProgramDto.Status.REGISTERED
+                connection.close()
+            }
+        }
     }
 }

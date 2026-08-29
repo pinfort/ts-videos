@@ -27,6 +27,32 @@ DB や NAS の接続先を変える場合は、以下の環境変数で上書き
 - `./gradlew test` - テストを実行（テストは Testcontainers で MariaDB を起動するため Docker が必要）
 - `./gradlew ktlintCheck` - Kotlin のコードスタイルチェック
 
+## processor:console (`tvpcli`)
+
+`tvpcli` は2つのサブコマンドを持ちます。
+
+- `process <パス>...` — 録画ファイル（または `.m2ts` を含むディレクトリ）を DropChk → TsSplitter → 圧縮・NAS アップロード → Amatsukaze タスク登録 のパイプラインで処理します。
+- `after-encode` — Amatsukaze のエンコード実行後バッチから呼び出します。エンコード済みファイルを `created_file` として登録し、NAS へアップロードしたうえで元ファイルを削除し、番組を `COMPLETED` にします。
+
+どちらも `-d` / `--dry-run` で書き込みを行わずに実行できます。
+
+```bash
+./gradlew processor:console:bootRun --args="process D:\\rec\\foo.m2ts"
+./gradlew processor:console:bootRun --args="after-encode"
+```
+
+`after-encode` は Amatsukaze が実行後バッチに渡す以下の環境変数を読みます（同名のオプションでも指定できます）。
+
+| 環境変数 | オプション | 内容 |
+| --- | --- | --- |
+| `ITEM_ID` | `--item-id` | Amatsukaze のアイテムID |
+| `IN_PATH` | `--in-path` | 入力ファイルパス（`succeeded` ディレクトリへ移動済み） |
+| `FILES` | `--files` | 出力ファイル群（`;` 区切り） |
+| `SUCCESS` | `--success` | `1` のときのみエンコード成功として扱う |
+| `ERROR_MESSAGE` | `--error-message` | 失敗理由（失敗したときのみ） |
+
+`after-encode` はロールバックを行いません。NAS へのアップロードやローカルファイルの削除が済んだ後に失敗を巻き戻すことはできないため、失敗時はログと Slack 通知（`SLACK_WEBHOOK_URL`）を行い、番組を `ERROR` にします。
+
 ## CLI のバージョン確認
 
 `tvmcli`（`manager:console`）と `tvpcli`（`processor:console`）は `--version` でバージョンと git コミットハッシュを `tvmcli version 0.0.1-SNAPSHOT (d87cab7)` の形式で表示します。どちらもビルド時に `core` のリソース（`version.properties`）へ埋め込まれます（バージョンは Gradle プロジェクトバージョン、コミットハッシュは `git rev-parse --short HEAD`）。git リポジトリ外でビルドした場合（Docker ビルドなど）はコミットハッシュが取得できないため、バージョンのみを表示します。

@@ -167,6 +167,51 @@ class SplittedFileMapperTest : ExpectSpec() {
             }
         }
 
+        context("selectByFile") {
+            expect("single") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM splitted_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO splitted_file(id,executed_file_id,file,size,duration,status) VALUES(1,1,'filepath',2,3,'REGISTERED');
+                """,
+                    ).execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO splitted_file(id,executed_file_id,file,size,duration,status) VALUES(2,1,'filepath2',2,3,'REGISTERED');
+                """,
+                    ).execute()
+                connection.commit()
+
+                val actual = splittedFileMapper.selectByFile("filepath")
+                connection.close()
+
+                actual shouldHaveSize 1
+                actual[0] shouldBe
+                    SplittedFileDto(
+                        id = 1,
+                        executedFileId = 1,
+                        file = "filepath",
+                        size = 2,
+                        duration = 3.0,
+                        status = SplittedFileDto.Status.REGISTERED,
+                    )
+            }
+
+            expect("none") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM splitted_file").execute()
+                connection.commit()
+
+                val actual = splittedFileMapper.selectByFile("filepath")
+                connection.close()
+
+                actual shouldHaveSize 0
+            }
+        }
+
         context("delete") {
             expect("success") {
                 val connection = dataSource.connection

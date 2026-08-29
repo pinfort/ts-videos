@@ -30,9 +30,9 @@ class CreatedFileCommand(
         size: Long,
         mime: String?,
         encoding: String?,
+        status: CreatedFile.Status = CreatedFile.Status.FILE_MOVED,
         dryRun: Boolean = false,
     ): CreatedFile {
-        val status = CreatedFile.Status.FILE_MOVED
         val id =
             if (!dryRun) {
                 val keyHolder = GeneratedKeyHolder()
@@ -53,6 +53,19 @@ class CreatedFileCommand(
             )
         logger.info("Insert created file, id=$id, createdFile=$createdFile")
         return createdFile
+    }
+
+    fun updateStatus(
+        createdFile: CreatedFile,
+        status: CreatedFile.Status,
+        dryRun: Boolean = false,
+    ): CreatedFile {
+        if (!dryRun) {
+            createdFileMapper.updateStatus(createdFile.id, status.name)
+        }
+        val updated = createdFile.copy(status = status)
+        logger.info("Update created file status, id=${createdFile.id}, status=$status")
+        return updated
     }
 
     fun findMp4File(id: Long): CreatedFile? {

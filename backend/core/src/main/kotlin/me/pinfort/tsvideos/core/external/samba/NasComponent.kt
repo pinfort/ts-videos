@@ -28,6 +28,16 @@ class NasComponent(
         throw Exception("File not found, path=$file")
     }
 
+    /**
+     * created_file の file は VIDEO_STORE_NAS / ORIGINAL_STORE_NAS のどちらにも存在しうるため、
+     * getResource と同じ順序で両方を確認する。見つからない場合は例外ではなく false を返す。
+     */
+    fun resourceExists(file: String): Boolean {
+        val normalized = file.replace('\\', '/')
+        if (videoStoreNas.resolve(normalized).exists()) return true
+        return originalStoreNas.resolve(normalized).exists()
+    }
+
     fun deleteResource(file: String): SambaClient.NasType {
         val resource = videoStoreNas.resolve(file.replace('\\', '/'))
         if (resource.exists()) {

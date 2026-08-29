@@ -53,6 +53,23 @@ interface SplittedFileMapper {
     )
     fun selectByExecutedFileId(executedFileId: Long): List<SplittedFileDto>
 
+    @Select(
+        """
+        SELECT
+            id,
+            executed_file_id,
+            file,
+            size,
+            duration,
+            status
+        FROM
+            splitted_file
+        WHERE
+            file = #{file}
+    """,
+    )
+    fun selectByFile(file: String): List<SplittedFileDto>
+
     @Delete(
         """
         DELETE FROM

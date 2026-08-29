@@ -237,7 +237,14 @@ class FileProcessingPipeline(
         val targetFile = sambaClient.resolvePathUnderBaseDir(SambaClient.NasType.ORIGINAL_STORE_NAS, relativeTargetFile)
 
         nasComponent.uploadResource(compressedFile, targetFile, SambaClient.NasType.ORIGINAL_STORE_NAS, onUploadProgress)
-        createdFileCommand.insert(splittedFile.id, targetFile, compressedFile.length(), "video/vnd.dlna.mpeg-tts", "gzip", dryRun)
+        createdFileCommand.insert(
+            splittedFile.id,
+            targetFile,
+            compressedFile.length(),
+            "video/vnd.dlna.mpeg-tts",
+            "gzip",
+            dryRun = dryRun,
+        )
         splittedFileCommand.updateStatus(splittedFile, SplittedFile.Status.COMPRESS_SAVED, dryRun)
         compressedFile.delete()
     }

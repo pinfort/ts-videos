@@ -49,6 +49,20 @@ class ProgramCommand(
 
     fun findByName(name: String): Program? = programMapper.findByName(name)?.let { programConverter.convert(it) }
 
+    fun findByExecutedFileId(executedFileId: Long): Program? =
+        programMapper.findByExecutedFileId(executedFileId)?.let { programConverter.convert(it) }
+
+    fun updateStatusByExecutedFileId(
+        executedFileId: Long,
+        status: Program.Status,
+        dryRun: Boolean = false,
+    ) {
+        if (!dryRun) {
+            programMapper.updateStatusByExecutedFileId(executedFileId, status.name)
+        }
+        logger.info("Update program status by executedFileId, executedFileId=$executedFileId, status=$status")
+    }
+
     fun insert(
         name: String,
         executedFileId: Long,

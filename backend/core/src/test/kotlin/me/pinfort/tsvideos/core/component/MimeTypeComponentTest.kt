@@ -1,0 +1,43 @@
+package me.pinfort.tsvideos.core.component
+
+import io.kotest.core.spec.style.ExpectSpec
+import io.kotest.matchers.shouldBe
+
+class MimeTypeComponentTest :
+    ExpectSpec({
+        val mimeTypeComponent = MimeTypeComponent()
+
+        context("guess") {
+            expect("mp4") {
+                mimeTypeComponent.guess("foo.mp4") shouldBe MimeTypeComponent.MimeType("video/mp4", null)
+            }
+
+            expect("m2ts") {
+                mimeTypeComponent.guess("foo.m2ts") shouldBe MimeTypeComponent.MimeType("video/vnd.dlna.mpeg-tts", null)
+            }
+
+            expect("ts") {
+                mimeTypeComponent.guess("foo.ts") shouldBe MimeTypeComponent.MimeType("video/vnd.dlna.mpeg-tts", null)
+            }
+
+            expect("gzipped m2ts") {
+                mimeTypeComponent.guess("foo.m2ts.gz") shouldBe MimeTypeComponent.MimeType("video/vnd.dlna.mpeg-tts", "gzip")
+            }
+
+            expect("gzipped unknown extension") {
+                mimeTypeComponent.guess("foo.unknown.gz") shouldBe MimeTypeComponent.MimeType(null, "gzip")
+            }
+
+            expect("upper case extension") {
+                mimeTypeComponent.guess("FOO.MP4") shouldBe MimeTypeComponent.MimeType("video/mp4", null)
+            }
+
+            expect("unknown extension") {
+                mimeTypeComponent.guess("foo.srt") shouldBe MimeTypeComponent.MimeType(null, null)
+            }
+
+            expect("no extension") {
+                mimeTypeComponent.guess("foo") shouldBe MimeTypeComponent.MimeType(null, null)
+            }
+        }
+    })

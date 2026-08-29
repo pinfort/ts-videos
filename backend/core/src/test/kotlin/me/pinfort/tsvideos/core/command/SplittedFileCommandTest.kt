@@ -65,6 +65,28 @@ class SplittedFileCommandTest :
             }
         }
 
+        context("findByFile") {
+            expect("success") {
+                every { splittedFileMapper.selectByFile("test.ts") } returns listOf(splittedFileDto)
+                every { splittedFileConverter.convert(any()) } returns splittedFile
+
+                splittedFileCommand.findByFile("test.ts") shouldBe splittedFile
+
+                verifySequence {
+                    splittedFileMapper.selectByFile("test.ts")
+                    splittedFileConverter.convert(splittedFileDto)
+                }
+            }
+
+            expect("null when not found") {
+                every { splittedFileMapper.selectByFile("test.ts") } returns emptyList()
+
+                splittedFileCommand.findByFile("test.ts") shouldBe null
+
+                verify(exactly = 0) { splittedFileConverter.convert(any()) }
+            }
+        }
+
         context("insert") {
             expect("success") {
                 every {
