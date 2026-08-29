@@ -269,16 +269,55 @@ class AfterEncodeRunnerTest :
                 verify { programCommand.updateStatusByExecutedFileId(10, Program.Status.ERROR, false) }
             }
 
-            expect("stops after the upload when the program is not found") {
+            expect("notifies and stops after the upload when the program is not found") {
                 val fixture = Fixture()
                 stubRegisterAndMove(fixture)
                 every { programCommand.findByExecutedFileId(10) } returns null
+                every { slackClient.notify(any()) } just Runs
 
                 afterEncodeRunner.run(inputOf(fixture))
 
                 verify { nasComponent.uploadResource(any(), any(), any(), any()) }
+                verify { slackClient.notify(match { it.contains("program not found") }) }
                 verify(exactly = 0) { programCommand.updateStatusByExecutedFileId(any(), any(), any()) }
                 fixture.inFile.exists() shouldBe true
+            }
+
+            expect("marks the program as ERROR when the nas upload throws") {
+                val fixture = Fixture()
+                stubRegisterAndMove(fixture)
+                every {
+                    nasComponent.uploadResource(any(), any(), any(), any())
+                } throws RuntimeException("smb timeout")
+                every { programCommand.updateStatusByExecutedFileId(any(), any(), any()) } just Runs
+                every { slackClient.notify(any()) } just Runs
+
+                // 無人のバッチから呼ばれるため、例外を投げずに通知して終わる
+                afterEncodeRunner.run(inputOf(fixture))
+
+                verify { slackClient.notify(match { it.contains("uploading encoded files failed") && it.contains("smb timeout") }) }
+                verify { programCommand.updateStatusByExecutedFileId(10, Program.Status.ERROR, false) }
+                verify(exactly = 0) { validateCompletedComponent.validate(any()) }
+                // 完了処理まで進まないので元ファイルは残る
+                fixture.inFile.exists() shouldBe true
+                fixture.executedFile.exists() shouldBe true
+            }
+
+            expect("marks the program as ERROR when registering a created file throws") {
+                val fixture = Fixture()
+                stubRegisterAndMove(fixture)
+                every {
+                    createdFileCommand.insert(any(), any(), any(), any(), any(), any(), any())
+                } throws RuntimeException("duplicate entry")
+                every { programCommand.updateStatusByExecutedFileId(any(), any(), any()) } just Runs
+                every { slackClient.notify(any()) } just Runs
+
+                afterEncodeRunner.run(inputOf(fixture))
+
+                verify { slackClient.notify(match { it.contains("duplicate entry") }) }
+                verify { programCommand.updateStatusByExecutedFileId(10, Program.Status.ERROR, false) }
+                verify(exactly = 0) { nasComponent.uploadResource(any(), any(), any(), any()) }
+                fixture.outFile.exists() shouldBe true
             }
         }
 

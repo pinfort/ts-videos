@@ -81,8 +81,22 @@ class AfterEncodeRunner(
             return
         }
 
-        val registeredFiles = registerFiles(splittedFile, input.files, dryRun)
-        moveFiles(registeredFiles, dryRun, onUploadProgress)
+        try {
+            val registeredFiles = registerFiles(splittedFile, input.files, dryRun)
+            moveFiles(registeredFiles, dryRun, onUploadProgress)
+        } catch (e: Exception) {
+            // アップロード済みのファイルや削除済みのローカルファイルは戻せないため、
+            // 通知して番組を ERROR にするだけに留める。無人のバッチから呼ばれるので、
+            // 例外をそのまま投げると誰も気づけない。
+            notifyFailure(
+                splittedFile.executedFileId,
+                "registering or uploading encoded files failed. in_path:${input.inPath}",
+                e,
+                dryRun,
+            )
+            return
+        }
+
         finishProcess(splittedFile.executedFileId, input.inPath, dryRun)
         logger.info("uploading file completed, targets=${input.files}")
     }
@@ -167,7 +181,9 @@ class AfterEncodeRunner(
     ) {
         val program = programCommand.findByExecutedFileId(executedFileId)
         if (program == null) {
+            // この時点でNASへのアップロードは済んでいるため、他の失敗と同様に通知する
             logger.error("program not found, executedFileId=$executedFileId")
+            slackClient.notify("program not found. executed_file_id:$executedFileId")
             return
         }
 
@@ -183,12 +199,22 @@ class AfterEncodeRunner(
                 programCommand.updateStatusByExecutedFileId(executedFileId, Program.Status.ERROR, dryRun)
             }
         } catch (e: Exception) {
-            logger.error("program invalid, programId=${program.id}", e)
-            slackClient.notify(
-                "program invalid. programId:${program.id}, e:${e.message}\nstackTrace:\n```\n${e.stackTraceToString()}\n```",
-            )
-            programCommand.updateStatusByExecutedFileId(executedFileId, Program.Status.ERROR, dryRun)
+            notifyFailure(executedFileId, "program invalid. programId:${program.id}", e, dryRun)
         }
+    }
+
+    /**
+     * ロールバックできない失敗を、ログ・Slack通知・番組の ERROR 化で報告する。
+     */
+    private fun notifyFailure(
+        executedFileId: Long,
+        message: String,
+        e: Exception,
+        dryRun: Boolean,
+    ) {
+        logger.error(message, e)
+        slackClient.notify("$message, e:${e.message}\nstackTrace:\n```\n${e.stackTraceToString()}\n```")
+        programCommand.updateStatusByExecutedFileId(executedFileId, Program.Status.ERROR, dryRun)
     }
 
     /**
