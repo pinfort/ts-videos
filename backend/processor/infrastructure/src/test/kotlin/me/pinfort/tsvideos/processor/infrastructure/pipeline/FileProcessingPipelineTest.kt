@@ -165,7 +165,7 @@ class FileProcessingPipelineTest :
 
                 every { nasComponent.uploadResource(any(), any(), any(), any()) } returns true
                 every {
-                    createdFileCommand.insert(any(), any(), any(), any(), any(), any())
+                    createdFileCommand.insert(any(), any(), any(), any(), any(), any(), any())
                 } returns
                     CreatedFile(
                         id = 300,
@@ -195,7 +195,7 @@ class FileProcessingPipelineTest :
                     )
                 }
                 verify {
-                    createdFileCommand.insert(200, match { it.startsWith("nas-base-dir/") }, any(), any(), any(), any())
+                    createdFileCommand.insert(200, match { it.startsWith("nas-base-dir/") }, any(), any(), any(), any(), any())
                 }
             }
         }
@@ -302,7 +302,7 @@ class FileProcessingPipelineTest :
                 val result = fileProcessingPipeline.processFile(original)
 
                 result shouldBe FileProcessingPipeline.Result.PROCESSED
-                verify(exactly = 0) { createdFileCommand.insert(any(), any(), any(), any(), any(), any()) }
+                verify(exactly = 0) { createdFileCommand.insert(any(), any(), any(), any(), any(), any(), any()) }
                 verify(exactly = 0) { nasComponent.uploadResource(any(), any(), any(), any()) }
                 verify { amatsukazeAddTaskClient.addTask(any(), any(), any()) }
             }
@@ -349,7 +349,7 @@ class FileProcessingPipelineTest :
 
                 every { nasComponent.uploadResource(any(), any(), any(), any()) } returns true
                 every {
-                    createdFileCommand.insert(any(), any(), any(), any(), any(), any())
+                    createdFileCommand.insert(any(), any(), any(), any(), any(), any(), any())
                 } returns
                     CreatedFile(
                         id = 300,

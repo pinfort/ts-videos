@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Options
 import org.apache.ibatis.annotations.Select
+import org.apache.ibatis.annotations.Update
 
 @Mapper
 interface ProgramMapper {
@@ -146,4 +147,19 @@ interface ProgramMapper {
         """,
     )
     fun findByExecutedFileId(executedFileId: Long): ProgramDto?
+
+    @Update(
+        """
+            UPDATE
+                program
+            SET
+                status = #{status}
+            WHERE
+                executed_file_id = #{executedFileId}
+        """,
+    )
+    fun updateStatusByExecutedFileId(
+        executedFileId: Long,
+        status: String,
+    ): Int
 }

@@ -106,10 +106,28 @@ class CreatedFileCommandTest :
                 }
             }
 
+            expect("explicit status") {
+                every {
+                    createdFileMapper.insert(any(), any(), any(), any(), any(), any(), any())
+                } answers {
+                    (it.invocation.args[6] as GeneratedKeyHolder).id = 1
+                    1
+                }
+                every { logger.info(any()) } just Runs
+
+                val actual =
+                    createdFileCommand.insert(2, "file", 3, "mime", "encoding", CreatedFile.Status.ENCODE_SUCCESS)
+
+                actual.status shouldBe CreatedFile.Status.ENCODE_SUCCESS
+                verify {
+                    createdFileMapper.insert(2, "file", 3, "mime", "encoding", "ENCODE_SUCCESS", any())
+                }
+            }
+
             expect("dryRun") {
                 every { logger.info(any()) } just Runs
 
-                val actual = createdFileCommand.insert(2, "file", 3, "mime", "encoding", true)
+                val actual = createdFileCommand.insert(2, "file", 3, "mime", "encoding", dryRun = true)
 
                 actual shouldBe
                     CreatedFile(
@@ -122,6 +140,27 @@ class CreatedFileCommandTest :
                         status = CreatedFile.Status.FILE_MOVED,
                     )
                 verify(exactly = 0) { createdFileMapper.insert(any(), any(), any(), any(), any(), any(), any()) }
+            }
+        }
+
+        context("updateStatus") {
+            expect("success") {
+                every { createdFileMapper.updateStatus(any(), any()) } returns 1
+                every { logger.info(any()) } just Runs
+
+                val actual = createdFileCommand.updateStatus(createdFile, CreatedFile.Status.FILE_MOVED)
+
+                actual shouldBe createdFile.copy(status = CreatedFile.Status.FILE_MOVED)
+                verify { createdFileMapper.updateStatus(createdFile.id, "FILE_MOVED") }
+            }
+
+            expect("dryRun") {
+                every { logger.info(any()) } just Runs
+
+                val actual = createdFileCommand.updateStatus(createdFile, CreatedFile.Status.FILE_MOVED, true)
+
+                actual shouldBe createdFile.copy(status = CreatedFile.Status.FILE_MOVED)
+                verify(exactly = 0) { createdFileMapper.updateStatus(any(), any()) }
             }
         }
 

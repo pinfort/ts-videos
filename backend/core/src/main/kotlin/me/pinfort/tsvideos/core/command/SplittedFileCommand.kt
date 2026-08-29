@@ -16,6 +16,9 @@ class SplittedFileCommand(
     fun selectByExecutedFileId(executedFileId: Long): List<SplittedFile> =
         splittedFileMapper.selectByExecutedFileId(executedFileId).map { splittedFileConverter.convert(it) }
 
+    fun findByFile(file: String): SplittedFile? =
+        splittedFileMapper.selectByFile(file).firstOrNull()?.let { splittedFileConverter.convert(it) }
+
     fun insert(
         executedFileId: Long,
         file: String,

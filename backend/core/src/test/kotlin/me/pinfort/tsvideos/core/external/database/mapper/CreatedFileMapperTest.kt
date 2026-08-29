@@ -364,6 +364,44 @@ class CreatedFileMapperTest : ExpectSpec() {
             }
         }
 
+        context("updateStatus") {
+            expect("success") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM created_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO created_file(id,splitted_file_id,file,size,mime,encoding,status) VALUES(7,1,'test',3,'test2','test3','ENCODE_SUCCESS');
+                """,
+                    ).execute()
+                connection.commit()
+
+                createdFileMapper.updateStatus(7, "FILE_MOVED")
+                connection.commit()
+
+                createdFileMapper.find(7)?.status shouldBe CreatedFileDto.Status.FILE_MOVED
+                connection.close()
+            }
+
+            expect("nothingHasUpdated") {
+                val connection = dataSource.connection
+                connection.prepareStatement("DELETE FROM created_file").execute()
+                connection
+                    .prepareStatement(
+                        """
+                    INSERT INTO created_file(id,splitted_file_id,file,size,mime,encoding,status) VALUES(7,1,'test',3,'test2','test3','ENCODE_SUCCESS');
+                """,
+                    ).execute()
+                connection.commit()
+
+                createdFileMapper.updateStatus(6, "FILE_MOVED")
+                connection.commit()
+
+                createdFileMapper.find(7)?.status shouldBe CreatedFileDto.Status.ENCODE_SUCCESS
+                connection.close()
+            }
+        }
+
         context("delete") {
             expect("success") {
                 val connection = dataSource.connection

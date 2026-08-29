@@ -97,6 +97,21 @@ interface CreatedFileMapper {
         file: String,
     ): Int
 
+    @Update(
+        """
+            UPDATE
+                created_file
+            SET
+                status = #{status}
+            WHERE
+                id = #{id}
+        """,
+    )
+    fun updateStatus(
+        id: Long,
+        status: String,
+    ): Int
+
     @Delete(
         """
             DELETE FROM
