@@ -2,7 +2,6 @@ package me.pinfort.tsvideos.core.command
 
 import jcifs.CIFSException
 import me.pinfort.tsvideos.core.domain.CreatedFile
-import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.samba.NasComponent
@@ -16,13 +15,12 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class CreatedFileCommand(
     private val createdFileMapper: CreatedFileMapper,
-    private val createdFileConverter: CreatedFileConverter,
     private val sambaClient: SambaClient,
     private val nasComponent: NasComponent,
     private val logger: Logger,
 ) {
     fun selectBySplittedFileId(splittedFileId: Long): List<CreatedFile> =
-        createdFileMapper.selectBySplittedFileId(splittedFileId).map { createdFileConverter.convert(it) }
+        createdFileMapper.selectBySplittedFileId(splittedFileId).map { it.toDomain() }
 
     fun insert(
         splittedFileId: Long,
@@ -69,7 +67,7 @@ class CreatedFileCommand(
     }
 
     fun findMp4File(id: Long): CreatedFile? {
-        val createdFile: CreatedFile = createdFileMapper.find(id)?.let { createdFileConverter.convert(it) } ?: return null
+        val createdFile: CreatedFile = createdFileMapper.find(id)?.toDomain() ?: return null
         // 動画ファイルでない場合はファイルが存在しない扱いをする
         if (!createdFile.isMp4) return null
         return createdFile

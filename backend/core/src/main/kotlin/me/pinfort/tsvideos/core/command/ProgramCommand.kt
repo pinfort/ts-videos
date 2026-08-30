@@ -6,9 +6,6 @@ import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
-import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
@@ -23,14 +20,11 @@ import java.time.LocalDateTime
 class ProgramCommand(
     private val programMapper: ProgramMapper,
     private val createdFileMapper: CreatedFileMapper,
-    private val createdFileConverter: CreatedFileConverter,
-    private val programDetailConverter: ProgramDetailConverter,
     private val executedFileCommand: ExecutedFileCommand,
     private val createdFileCommand: CreatedFileCommand,
     private val splittedFileMapper: SplittedFileMapper,
     private val logger: Logger,
     private val splittedFileCommand: SplittedFileCommand,
-    private val splittedFileConverter: SplittedFileConverter,
     private val directoryNameComponent: DirectoryNameComponent,
 ) {
     fun selectByName(
@@ -104,12 +98,12 @@ class ProgramCommand(
 
     fun videoFiles(program: Program): List<CreatedFile> =
         createdFileMapper.selectByExecutedFileId(program.executedFileId).map {
-            createdFileConverter.convert(it)
+            it.toDomain()
         }
 
     fun hasTsFile(program: Program): Boolean {
         createdFileMapper.selectByExecutedFileId(program.executedFileId).forEach {
-            if (createdFileConverter.convert(it).isTs) {
+            if (it.toDomain().isTs) {
                 return true
             }
         }
@@ -119,7 +113,7 @@ class ProgramCommand(
     fun findDetail(id: Long): ProgramDetail? {
         val program: ProgramDto = programMapper.find(id) ?: return null
         val createdFiles: List<CreatedFileDto> = createdFileMapper.selectByExecutedFileId(program.executedFileId)
-        return programDetailConverter.convert(program, createdFiles)
+        return program.toProgramDetail(createdFiles)
     }
 
     @Transactional
@@ -132,11 +126,11 @@ class ProgramCommand(
         val createdFiles: List<CreatedFileDto> = createdFileMapper.selectByExecutedFileId(program.executedFileId)
 
         splittedFiles.forEach {
-            splittedFileCommand.delete(splittedFileConverter.convert(it), dryRun)
+            splittedFileCommand.delete(it.toDomain(), dryRun)
         }
 
         createdFiles.forEach {
-            createdFileCommand.delete(createdFileConverter.convert(it), dryRun)
+            createdFileCommand.delete(it.toDomain(), dryRun)
         }
 
         executedFileCommand.delete(executedFile, dryRun)
@@ -158,7 +152,7 @@ class ProgramCommand(
         createdFiles.forEach {
             val oldPath = Path.of(it.file.replace('\\', '/'))
             val newPath = directoryNameComponent.replaceWithGivenDirectoryName(oldPath, newDirectory)
-            createdFileCommand.move(createdFileConverter.convert(it), newPath.toString().replace('/', '\\'), dryRun)
+            createdFileCommand.move(it.toDomain(), newPath.toString().replace('/', '\\'), dryRun)
         }
 
         logger.info("Move created files, id=${program.id}, newDirectory=$newDirectory, program=$program")

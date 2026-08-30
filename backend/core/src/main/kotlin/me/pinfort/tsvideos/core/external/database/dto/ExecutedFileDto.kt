@@ -1,5 +1,6 @@
 package me.pinfort.tsvideos.core.external.database.dto
 
+import me.pinfort.tsvideos.core.domain.ExecutedFile
 import java.time.LocalDateTime
 
 data class ExecutedFileDto(
@@ -19,4 +20,22 @@ data class ExecutedFileDto(
         DROPCHECKED,
         SPLITTED,
     }
+
+    fun toDomain(): ExecutedFile =
+        ExecutedFile(
+            id = id,
+            file = file,
+            drops = drops,
+            size = size,
+            recordedAt = recordedAt,
+            channel = channel,
+            title = title,
+            channelName = channelName,
+            duration = duration,
+            status = when (status) {
+                Status.REGISTERED -> ExecutedFile.Status.REGISTERED
+                Status.DROPCHECKED -> ExecutedFile.Status.DROPCHECKED
+                Status.SPLITTED -> ExecutedFile.Status.SPLITTED
+            },
+        )
 }

@@ -1,7 +1,6 @@
 package me.pinfort.tsvideos.core.command
 
 import me.pinfort.tsvideos.core.domain.ExecutedFile
-import me.pinfort.tsvideos.core.external.database.dto.converter.ExecutedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.ExecutedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import org.slf4j.Logger
@@ -11,13 +10,12 @@ import java.time.LocalDateTime
 @Component
 class ExecutedFileCommand(
     private val executedFileMapper: ExecutedFileMapper,
-    private val executedFileConverter: ExecutedFileConverter,
     private val logger: Logger,
 ) {
-    fun find(id: Long): ExecutedFile? = executedFileMapper.find(id)?.let { executedFileConverter.convert(it) }
+    fun find(id: Long): ExecutedFile? = executedFileMapper.find(id)?.toDomain()
 
     fun findByFile(file: String): ExecutedFile? =
-        executedFileMapper.selectByFile(file).firstOrNull()?.let { executedFileConverter.convert(it) }
+        executedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
 
     fun insert(
         file: String,

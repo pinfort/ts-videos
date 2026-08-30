@@ -1,5 +1,7 @@
 package me.pinfort.tsvideos.core.external.database.dto
 
+import me.pinfort.tsvideos.core.domain.CreatedFile
+
 data class CreatedFileDto(
     val id: Long,
     val splittedFileId: Long,
@@ -14,4 +16,19 @@ data class CreatedFileDto(
         ENCODE_SUCCESS,
         FILE_MOVED,
     }
+
+    fun toDomain(): CreatedFile =
+        CreatedFile(
+            id = id,
+            splittedFileId = splittedFileId,
+            file = file,
+            size = size,
+            mime = mime,
+            encoding = encoding,
+            status = when (status) {
+                Status.REGISTERED -> CreatedFile.Status.REGISTERED
+                Status.ENCODE_SUCCESS -> CreatedFile.Status.ENCODE_SUCCESS
+                Status.FILE_MOVED -> CreatedFile.Status.FILE_MOVED
+            },
+        )
 }
