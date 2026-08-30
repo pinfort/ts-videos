@@ -97,12 +97,13 @@ class ProgramCommandTest :
             CreatedFileDto(
                 id = 1,
                 splittedFileId = 2,
-                file = "file",
+                file = "file\\file1",
                 size = 3,
                 mime = "mime",
                 encoding = "encoding",
                 status = CreatedFileDto.Status.ENCODE_SUCCESS,
             )
+        val tsCreatedFileDto = createdFileDto.copy(mime = "video/vnd.dlna.mpeg-tts")
         val createdFile =
             CreatedFile(
                 id = 1,
@@ -162,9 +163,7 @@ class ProgramCommandTest :
 
         context("findByName") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
-                every { mockProgramDto.toDomain() } returns program
-                every { programMapper.findByName(any()) } returns mockProgramDto
+                every { programMapper.findByName(any()) } returns programDto
 
                 val actual = programCommand.findByName("name")
 
@@ -190,9 +189,7 @@ class ProgramCommandTest :
 
         context("findByExecutedFileId") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
-                every { mockProgramDto.toDomain() } returns program
-                every { programMapper.findByExecutedFileId(any()) } returns mockProgramDto
+                every { programMapper.findByExecutedFileId(any()) } returns programDto
 
                 programCommand.findByExecutedFileId(2) shouldBe program
 
@@ -232,15 +229,13 @@ class ProgramCommandTest :
 
         context("insert") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
                 every {
                     programMapper.insert(any(), any(), any(), any())
                 } answers {
                     (it.invocation.args[3] as GeneratedKeyHolder).id = 1
                     1
                 }
-                every { programMapper.find(any()) } returns mockProgramDto
-                every { mockProgramDto.toDomain() } returns program
+                every { programMapper.find(any()) } returns programDto
                 every { logger.info(any()) } just Runs
 
                 val actual = programCommand.insert("name", 2)
@@ -288,9 +283,7 @@ class ProgramCommandTest :
 
         context("selectByName") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
-                every { mockProgramDto.toDomain() } returns program
-                every { programMapper.selectByName(any(), any(), any()) } returns listOf(mockProgramDto)
+                every { programMapper.selectByName(any(), any(), any()) } returns listOf(programDto)
 
                 val actual = programCommand.selectByName("test", 1, 2)
 
@@ -316,9 +309,7 @@ class ProgramCommandTest :
 
         context("find") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
-                every { mockProgramDto.toDomain() } returns program
-                every { programMapper.find(any()) } returns mockProgramDto
+                every { programMapper.find(any()) } returns programDto
 
                 val actual = programCommand.find(1)
 
@@ -344,9 +335,7 @@ class ProgramCommandTest :
 
         context("videoFiles") {
             expect("success") {
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
-                every { mockCreatedFileDto.toDomain() } returns createdFile
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
 
                 val testProgram = program.copy(executedFileId = 1)
 
@@ -376,9 +365,7 @@ class ProgramCommandTest :
 
         context("hasTsFile") {
             expect("success") {
-                val mockDto = mockk<CreatedFileDto>()
-                every { mockDto.toDomain().isTs } returns true
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(tsCreatedFileDto)
 
                 val actual = programCommand.hasTsFile(program)
 
@@ -386,9 +373,7 @@ class ProgramCommandTest :
             }
 
             expect("successNoTs") {
-                val mockDto = mockk<CreatedFileDto>()
-                every { mockDto.toDomain().isTs } returns false
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
 
                 val actual = programCommand.hasTsFile(program)
 
@@ -406,10 +391,7 @@ class ProgramCommandTest :
 
         context("findDetail") {
             expect("success") {
-                val mockProgramDto = mockk<ProgramDto>(relaxed = true)
-                every { mockProgramDto.executedFileId } returns 2
-                every { mockProgramDto.toProgramDetail(any()) } returns programDetail
-                every { programMapper.find(any()) } returns mockProgramDto
+                every { programMapper.find(any()) } returns programDto
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
 
                 val actual = programCommand.findDetail(1)
@@ -418,9 +400,8 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.find(1)
-                    createdFileMapper.selectByExecutedFileId(2)
+                    createdFileMapper.selectByExecutedFileId(programDto.executedFileId)
                 }
-                verify { mockProgramDto.toProgramDetail(listOf(createdFileDto)) }
             }
 
             expect("noHit") {
@@ -438,16 +419,12 @@ class ProgramCommandTest :
 
         context("delete") {
             expect("success") {
-                val mockSplittedFileDto = mockk<SplittedFileDto>(relaxed = true)
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
                 every { executedFileCommand.find(any()) } returns executedFile
-                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(mockSplittedFileDto)
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
-                every { mockSplittedFileDto.toDomain() } returns splittedFile
+                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
                 every { splittedFileCommand.delete(any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
-                every { mockCreatedFileDto.toDomain() } returns createdFile
                 every { executedFileCommand.delete(any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -480,16 +457,12 @@ class ProgramCommandTest :
             }
 
             expect("dryRun") {
-                val mockSplittedFileDto = mockk<SplittedFileDto>(relaxed = true)
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
                 every { executedFileCommand.find(any()) } returns executedFile
-                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(mockSplittedFileDto)
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
-                every { mockSplittedFileDto.toDomain() } returns splittedFile
+                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
                 every { splittedFileCommand.delete(any(), any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
-                every { mockCreatedFileDto.toDomain() } returns createdFile
                 every { executedFileCommand.delete(any(), any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -510,16 +483,12 @@ class ProgramCommandTest :
             }
 
             expect("exception") {
-                val mockSplittedFileDto = mockk<SplittedFileDto>(relaxed = true)
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
                 every { executedFileCommand.find(any()) } returns executedFile
-                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(mockSplittedFileDto)
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
-                every { mockSplittedFileDto.toDomain() } returns splittedFile
+                every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
                 every { splittedFileCommand.delete(any(), any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any(), any()) } throws RuntimeException("error")
-                every { mockCreatedFileDto.toDomain() } returns createdFile
                 every { executedFileCommand.delete(any(), any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -544,9 +513,7 @@ class ProgramCommandTest :
 
         context("moveCreatedFiles") {
             expect("success") {
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
-                every { mockCreatedFileDto.toDomain() } returns createdFile
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
                 every { createdFileCommand.move(any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
                 every { logger.info(any()) } just Runs
                 every { directoryNameComponent.replaceWithGivenDirectoryName(any(), any()) } returns Path.of("newPath")
@@ -561,9 +528,7 @@ class ProgramCommandTest :
             }
 
             expect("dryRun") {
-                val mockCreatedFileDto = mockk<CreatedFileDto>(relaxed = true)
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(mockCreatedFileDto)
-                every { mockCreatedFileDto.toDomain() } returns createdFile
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
                 every { createdFileCommand.move(any(), any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
                 every { logger.info(any()) } just Runs
                 every { directoryNameComponent.replaceWithGivenDirectoryName(any(), any()) } returns Path.of("newPath")
