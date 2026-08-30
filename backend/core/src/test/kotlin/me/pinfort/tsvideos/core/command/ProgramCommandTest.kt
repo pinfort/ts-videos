@@ -407,6 +407,7 @@ class ProgramCommandTest :
         context("findDetail") {
             expect("success") {
                 val mockProgramDto = mockk<ProgramDto>(relaxed = true)
+                every { mockProgramDto.executedFileId } returns 2
                 every { mockProgramDto.toProgramDetail(any()) } returns programDetail
                 every { programMapper.find(any()) } returns mockProgramDto
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
@@ -417,7 +418,9 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.find(1)
+                    createdFileMapper.selectByExecutedFileId(2)
                 }
+                verify { mockProgramDto.toProgramDetail(listOf(createdFileDto)) }
             }
 
             expect("noHit") {
