@@ -1,6 +1,5 @@
 package me.pinfort.tsvideos.core.external.database.dto
 
-import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import java.time.LocalDateTime
