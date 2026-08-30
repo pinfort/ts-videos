@@ -1,5 +1,6 @@
 package me.pinfort.tsvideos.core.external.database.dto
 
+import me.pinfort.tsvideos.core.domain.Program
 import java.time.LocalDateTime
 
 data class ProgramDto(
@@ -20,4 +21,23 @@ data class ProgramDto(
         COMPLETED,
         ERROR,
     }
+
+    fun toDomain(): Program =
+        Program(
+            id = id,
+            name = name,
+            executedFileId = executedFileId,
+            status = when (status) {
+                Status.REGISTERED -> Program.Status.REGISTERED
+                Status.COMPLETED -> Program.Status.COMPLETED
+                Status.ERROR -> Program.Status.ERROR
+            },
+            drops = drops ?: -1,
+            size = size ?: 0,
+            recordedAt = recordedAt ?: LocalDateTime.MIN,
+            channel = channel ?: "",
+            title = title ?: "",
+            channelName = channelName ?: "",
+            duration = duration ?: -1.0,
+        )
 }

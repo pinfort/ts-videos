@@ -20,7 +20,6 @@ import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
@@ -36,7 +35,6 @@ class ProgramCommandTest :
     ExpectSpec({
 
         lateinit var programMapper: ProgramMapper
-        lateinit var programConverter: ProgramConverter
         lateinit var createdFileMapper: CreatedFileMapper
         lateinit var createdFileConverter: CreatedFileConverter
         lateinit var programDetailConverter: ProgramDetailConverter
@@ -53,7 +51,6 @@ class ProgramCommandTest :
             clearAllMocks()
 
             programMapper = mockk<ProgramMapper>()
-            programConverter = mockk<ProgramConverter>()
             createdFileMapper = mockk<CreatedFileMapper>()
             createdFileConverter = mockk<CreatedFileConverter>()
             programDetailConverter = mockk<ProgramDetailConverter>()
@@ -67,7 +64,6 @@ class ProgramCommandTest :
             programCommand =
                 ProgramCommand(
                     programMapper,
-                    programConverter,
                     createdFileMapper,
                     createdFileConverter,
                     programDetailConverter,
@@ -179,7 +175,7 @@ class ProgramCommandTest :
         context("findByName") {
             expect("success") {
                 every { programMapper.findByName(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
+                every { programDto.toDomain() } returns program
 
                 val actual = programCommand.findByName("name")
 
@@ -187,7 +183,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.findByName("name")
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -207,13 +202,12 @@ class ProgramCommandTest :
         context("findByExecutedFileId") {
             expect("success") {
                 every { programMapper.findByExecutedFileId(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
+                every { programDto.toDomain() } returns program
 
                 programCommand.findByExecutedFileId(2) shouldBe program
 
                 verifySequence {
                     programMapper.findByExecutedFileId(2)
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -222,7 +216,7 @@ class ProgramCommandTest :
 
                 programCommand.findByExecutedFileId(2) shouldBe null
 
-                verify(exactly = 0) { programConverter.convert(any()) }
+                verify(exactly = 0) { programDto.toDomain() }
             }
         }
 
@@ -257,7 +251,7 @@ class ProgramCommandTest :
                     1
                 }
                 every { programMapper.find(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
+                every { programDto.toDomain() } returns program
                 every { logger.info(any()) } just Runs
 
                 val actual = programCommand.insert("name", 2)
@@ -306,7 +300,7 @@ class ProgramCommandTest :
         context("selectByName") {
             expect("success") {
                 every { programMapper.selectByName(any(), any(), any()) } returns listOf(programDto)
-                every { programConverter.convert(any()) } returns program
+                every { programDto.toDomain() } returns program
 
                 val actual = programCommand.selectByName("test", 1, 2)
 
@@ -314,7 +308,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.selectByName("test", 1, 2)
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -334,7 +327,7 @@ class ProgramCommandTest :
         context("find") {
             expect("success") {
                 every { programMapper.find(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
+                every { programDto.toDomain() } returns program
 
                 val actual = programCommand.find(1)
 
@@ -342,7 +335,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.find(1)
-                    programConverter.convert(programDto)
                 }
             }
 

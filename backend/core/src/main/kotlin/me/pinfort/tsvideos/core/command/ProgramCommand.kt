@@ -7,7 +7,6 @@ import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
 import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
@@ -23,7 +22,6 @@ import java.time.LocalDateTime
 @Component
 class ProgramCommand(
     private val programMapper: ProgramMapper,
-    private val programConverter: ProgramConverter,
     private val createdFileMapper: CreatedFileMapper,
     private val createdFileConverter: CreatedFileConverter,
     private val programDetailConverter: ProgramDetailConverter,
@@ -42,15 +40,15 @@ class ProgramCommand(
     ): List<Program> {
         val programs: List<ProgramDto> = programMapper.selectByName(name, limit, offset)
 
-        return programs.map { programConverter.convert(it) }
+        return programs.map { it.toDomain() }
     }
 
-    fun find(id: Long): Program? = programMapper.find(id)?.let { programConverter.convert(it) }
+    fun find(id: Long): Program? = programMapper.find(id)?.toDomain()
 
-    fun findByName(name: String): Program? = programMapper.findByName(name)?.let { programConverter.convert(it) }
+    fun findByName(name: String): Program? = programMapper.findByName(name)?.toDomain()
 
     fun findByExecutedFileId(executedFileId: Long): Program? =
-        programMapper.findByExecutedFileId(executedFileId)?.let { programConverter.convert(it) }
+        programMapper.findByExecutedFileId(executedFileId)?.toDomain()
 
     fun updateStatusByExecutedFileId(
         executedFileId: Long,
