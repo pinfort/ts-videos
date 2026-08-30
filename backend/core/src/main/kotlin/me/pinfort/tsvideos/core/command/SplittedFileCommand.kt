@@ -14,8 +14,7 @@ class SplittedFileCommand(
     fun selectByExecutedFileId(executedFileId: Long): List<SplittedFile> =
         splittedFileMapper.selectByExecutedFileId(executedFileId).map { it.toDomain() }
 
-    fun findByFile(file: String): SplittedFile? =
-        splittedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
+    fun findByFile(file: String): SplittedFile? = splittedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
 
     fun insert(
         executedFileId: Long,

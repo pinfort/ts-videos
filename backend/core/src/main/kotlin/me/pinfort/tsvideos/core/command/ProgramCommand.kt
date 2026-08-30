@@ -41,8 +41,7 @@ class ProgramCommand(
 
     fun findByName(name: String): Program? = programMapper.findByName(name)?.toDomain()
 
-    fun findByExecutedFileId(executedFileId: Long): Program? =
-        programMapper.findByExecutedFileId(executedFileId)?.toDomain()
+    fun findByExecutedFileId(executedFileId: Long): Program? = programMapper.findByExecutedFileId(executedFileId)?.toDomain()
 
     fun updateStatusByExecutedFileId(
         executedFileId: Long,

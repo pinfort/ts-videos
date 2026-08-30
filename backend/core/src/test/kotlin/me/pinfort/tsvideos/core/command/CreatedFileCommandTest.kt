@@ -12,7 +12,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import jcifs.SmbResource
-import jcifs.smb.SmbException
 import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper

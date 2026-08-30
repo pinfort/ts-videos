@@ -14,8 +14,7 @@ class ExecutedFileCommand(
 ) {
     fun find(id: Long): ExecutedFile? = executedFileMapper.find(id)?.toDomain()
 
-    fun findByFile(file: String): ExecutedFile? =
-        executedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
+    fun findByFile(file: String): ExecutedFile? = executedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
 
     fun insert(
         file: String,

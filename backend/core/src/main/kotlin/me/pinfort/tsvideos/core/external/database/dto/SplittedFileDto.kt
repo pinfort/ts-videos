@@ -23,10 +23,11 @@ data class SplittedFileDto(
             file = file,
             size = size,
             duration = duration,
-            status = when (status) {
-                Status.REGISTERED -> SplittedFile.Status.REGISTERED
-                Status.COMPRESS_SAVED -> SplittedFile.Status.COMPRESS_SAVED
-                Status.ENCODE_TASK_ADDED -> SplittedFile.Status.ENCODE_TASK_ADDED
-            },
+            status =
+                when (status) {
+                    Status.REGISTERED -> SplittedFile.Status.REGISTERED
+                    Status.COMPRESS_SAVED -> SplittedFile.Status.COMPRESS_SAVED
+                    Status.ENCODE_TASK_ADDED -> SplittedFile.Status.ENCODE_TASK_ADDED
+                },
         )
 }

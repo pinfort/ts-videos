@@ -3,10 +3,8 @@ package me.pinfort.tsvideos.core.external.database.dto
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import me.pinfort.tsvideos.core.domain.CreatedFile
-import me.pinfort.tsvideos.core.domain.ExecutedFile
 import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
-import me.pinfort.tsvideos.core.domain.SplittedFile
 import java.time.LocalDateTime
 
 class ProgramDtoTest :
@@ -172,26 +170,27 @@ class ProgramDtoTest :
                         title = "title",
                         channelName = "channelName",
                         duration = 5.0,
-                        createdFiles = listOf(
-                            CreatedFile(
-                                id = 1,
-                                splittedFileId = 2,
-                                file = "file1.ts",
-                                size = 100,
-                                mime = "video/vnd.dlna.mpeg-tts",
-                                encoding = "encoding",
-                                status = CreatedFile.Status.ENCODE_SUCCESS,
+                        createdFiles =
+                            listOf(
+                                CreatedFile(
+                                    id = 1,
+                                    splittedFileId = 2,
+                                    file = "file1.ts",
+                                    size = 100,
+                                    mime = "video/vnd.dlna.mpeg-tts",
+                                    encoding = "encoding",
+                                    status = CreatedFile.Status.ENCODE_SUCCESS,
+                                ),
+                                CreatedFile(
+                                    id = 2,
+                                    splittedFileId = 2,
+                                    file = "file2.mp4",
+                                    size = 200,
+                                    mime = "video/mp4",
+                                    encoding = "encoding",
+                                    status = CreatedFile.Status.FILE_MOVED,
+                                ),
                             ),
-                            CreatedFile(
-                                id = 2,
-                                splittedFileId = 2,
-                                file = "file2.mp4",
-                                size = 200,
-                                mime = "video/mp4",
-                                encoding = "encoding",
-                                status = CreatedFile.Status.FILE_MOVED,
-                            ),
-                        ),
                     )
             }
 

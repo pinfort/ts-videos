@@ -27,11 +27,12 @@ data class ProgramDto(
             id = id,
             name = name,
             executedFileId = executedFileId,
-            status = when (status) {
-                Status.REGISTERED -> Program.Status.REGISTERED
-                Status.COMPLETED -> Program.Status.COMPLETED
-                Status.ERROR -> Program.Status.ERROR
-            },
+            status =
+                when (status) {
+                    Status.REGISTERED -> Program.Status.REGISTERED
+                    Status.COMPLETED -> Program.Status.COMPLETED
+                    Status.ERROR -> Program.Status.ERROR
+                },
             drops = drops ?: -1,
             size = size ?: 0,
             recordedAt = recordedAt ?: LocalDateTime.MIN,
@@ -46,11 +47,12 @@ data class ProgramDto(
             id = id,
             name = name,
             executedFileId = executedFileId,
-            status = when (status) {
-                Status.REGISTERED -> Program.Status.REGISTERED
-                Status.COMPLETED -> Program.Status.COMPLETED
-                Status.ERROR -> Program.Status.ERROR
-            },
+            status =
+                when (status) {
+                    Status.REGISTERED -> Program.Status.REGISTERED
+                    Status.COMPLETED -> Program.Status.COMPLETED
+                    Status.ERROR -> Program.Status.ERROR
+                },
             drops = drops ?: -1,
             size = size ?: 0,
             recordedAt = recordedAt ?: LocalDateTime.MIN,

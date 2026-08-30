@@ -25,10 +25,11 @@ data class CreatedFileDto(
             size = size,
             mime = mime,
             encoding = encoding,
-            status = when (status) {
-                Status.REGISTERED -> CreatedFile.Status.REGISTERED
-                Status.ENCODE_SUCCESS -> CreatedFile.Status.ENCODE_SUCCESS
-                Status.FILE_MOVED -> CreatedFile.Status.FILE_MOVED
-            },
+            status =
+                when (status) {
+                    Status.REGISTERED -> CreatedFile.Status.REGISTERED
+                    Status.ENCODE_SUCCESS -> CreatedFile.Status.ENCODE_SUCCESS
+                    Status.FILE_MOVED -> CreatedFile.Status.FILE_MOVED
+                },
         )
 }

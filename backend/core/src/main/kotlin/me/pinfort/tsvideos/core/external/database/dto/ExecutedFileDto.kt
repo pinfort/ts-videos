@@ -32,10 +32,11 @@ data class ExecutedFileDto(
             title = title,
             channelName = channelName,
             duration = duration,
-            status = when (status) {
-                Status.REGISTERED -> ExecutedFile.Status.REGISTERED
-                Status.DROPCHECKED -> ExecutedFile.Status.DROPCHECKED
-                Status.SPLITTED -> ExecutedFile.Status.SPLITTED
-            },
+            status =
+                when (status) {
+                    Status.REGISTERED -> ExecutedFile.Status.REGISTERED
+                    Status.DROPCHECKED -> ExecutedFile.Status.DROPCHECKED
+                    Status.SPLITTED -> ExecutedFile.Status.SPLITTED
+                },
         )
 }
