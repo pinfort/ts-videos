@@ -242,11 +242,11 @@ class CreatedFileCommandTest :
 
             expect("noFile") {
                 val testCreatedFile = createdFile.copy(mime = "video/mp4", file = "test\\")
+                val testStream = InputStream.nullInputStream()
                 val smbResource = mockk<SmbResource>()
                 every { createdFileMapper.find(any()) } returns createdFileDto
                 every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
                 every { smbResource.length() } returns 12345L
-                every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
                 every { smbResource.openInputStream() } returns testStream
 
                 val result = createdFileCommand.streamCreatedFile(1)
