@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import me.pinfort.tsvideos.core.domain.CreatedFile
-import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
@@ -13,9 +12,8 @@ import java.time.LocalDateTime
 
 class ProgramDetailConverterTest :
     ExpectSpec({
-        val programStatusConverter = mockk<ProgramStatusConverter>()
         val createdFileConverter = mockk<CreatedFileConverter>()
-        val programDetailConverter = ProgramDetailConverter(programStatusConverter, createdFileConverter)
+        val programDetailConverter = ProgramDetailConverter(createdFileConverter)
 
         val dummyCreatedFileDto =
             CreatedFileDto(
@@ -41,7 +39,6 @@ class ProgramDetailConverterTest :
 
         context("convert") {
             expect("success") {
-                every { programStatusConverter.convert(any()) } returns Program.Status.COMPLETED
                 every { createdFileConverter.convert(any()) } returns dummyCreatedFile
 
                 val actual =
@@ -67,7 +64,7 @@ class ProgramDetailConverterTest :
                         id = 1,
                         name = "2",
                         executedFileId = 3,
-                        status = Program.Status.COMPLETED,
+                        status = ProgramDetail.Status.COMPLETED,
                         drops = 4,
                         size = 5,
                         recordedAt = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
@@ -80,7 +77,6 @@ class ProgramDetailConverterTest :
             }
 
             expect("success with null fields") {
-                every { programStatusConverter.convert(any()) } returns Program.Status.COMPLETED
                 every { createdFileConverter.convert(any()) } returns dummyCreatedFile
 
                 val actual =
@@ -106,7 +102,7 @@ class ProgramDetailConverterTest :
                         id = 1,
                         name = "2",
                         executedFileId = 3,
-                        status = Program.Status.COMPLETED,
+                        status = ProgramDetail.Status.COMPLETED,
                         drops = -1,
                         size = 0,
                         recordedAt = LocalDateTime.MIN,

@@ -8,7 +8,6 @@ import java.time.LocalDateTime
 
 @Component
 class ProgramDetailConverter(
-    private val programStatusConverter: ProgramStatusConverter,
     private val createdFileConverter: CreatedFileConverter,
 ) {
     fun convert(
@@ -19,7 +18,11 @@ class ProgramDetailConverter(
             id = dto.id,
             name = dto.name,
             executedFileId = dto.executedFileId,
-            status = programStatusConverter.convert(dto.status),
+            status = when (dto.status) {
+                ProgramDto.Status.REGISTERED -> ProgramDetail.Status.REGISTERED
+                ProgramDto.Status.COMPLETED -> ProgramDetail.Status.COMPLETED
+                ProgramDto.Status.ERROR -> ProgramDetail.Status.ERROR
+            },
             drops = dto.drops ?: -1,
             size = dto.size ?: 0,
             recordedAt = dto.recordedAt ?: LocalDateTime.MIN,
