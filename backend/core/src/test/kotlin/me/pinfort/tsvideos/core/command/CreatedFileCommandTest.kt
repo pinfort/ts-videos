@@ -12,6 +12,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifySequence
 import jcifs.SmbResource
+import jcifs.smb.SmbException
 import me.pinfort.tsvideos.core.domain.CreatedFile
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
@@ -241,27 +242,13 @@ class CreatedFileCommandTest :
             }
 
             expect("noFile") {
-                val testCreatedFile = createdFile.copy(mime = "video/mp4", file = "test\\")
-                val testStream = InputStream.nullInputStream()
                 val smbResource = mockk<SmbResource>()
                 every { createdFileMapper.find(any()) } returns createdFileDto
                 every { sambaClient.videoStoreNas().resolve(any()) } returns smbResource
-                every { smbResource.length() } returns 12345L
-                every { smbResource.openInputStream() } returns testStream
+                every { smbResource.length() } throws SmbException("err")
 
-                val result = createdFileCommand.streamCreatedFile(1)
-
-                result.shouldBeInstanceOf<SmbFileResource>()
-                result?.contentLength() shouldBe 12345L
-                result?.inputStream.shouldBeInstanceOf<BufferedInputStream>()
-
-                verifySequence {
-                    createdFileMapper.find(1)
-                    sambaClient.videoStoreNas().resolve("test/")
-                    smbResource.length()
-                }
+                createdFileCommand.streamCreatedFile(1) shouldBe null
             }
-
             expect("noHit") {
                 every { createdFileMapper.find(any()) } returns null
 
