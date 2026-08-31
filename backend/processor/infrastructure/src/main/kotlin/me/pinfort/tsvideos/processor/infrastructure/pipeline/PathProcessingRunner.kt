@@ -25,6 +25,8 @@ class PathProcessingRunner(
             return
         }
 
+        logger.info("Processing, path=$path")
+
         resolveFiles(target).forEach { file ->
             try {
                 fileProcessingPipeline.processFile(file, dryRun, onCompressProgress, onUploadProgress)
