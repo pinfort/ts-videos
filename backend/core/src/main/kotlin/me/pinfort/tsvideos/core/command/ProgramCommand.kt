@@ -6,10 +6,6 @@ import me.pinfort.tsvideos.core.domain.Program
 import me.pinfort.tsvideos.core.domain.ProgramDetail
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
-import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
@@ -23,16 +19,12 @@ import java.time.LocalDateTime
 @Component
 class ProgramCommand(
     private val programMapper: ProgramMapper,
-    private val programConverter: ProgramConverter,
     private val createdFileMapper: CreatedFileMapper,
-    private val createdFileConverter: CreatedFileConverter,
-    private val programDetailConverter: ProgramDetailConverter,
     private val executedFileCommand: ExecutedFileCommand,
     private val createdFileCommand: CreatedFileCommand,
     private val splittedFileMapper: SplittedFileMapper,
     private val logger: Logger,
     private val splittedFileCommand: SplittedFileCommand,
-    private val splittedFileConverter: SplittedFileConverter,
     private val directoryNameComponent: DirectoryNameComponent,
 ) {
     fun selectByName(
@@ -42,15 +34,14 @@ class ProgramCommand(
     ): List<Program> {
         val programs: List<ProgramDto> = programMapper.selectByName(name, limit, offset)
 
-        return programs.map { programConverter.convert(it) }
+        return programs.map { it.toDomain() }
     }
 
-    fun find(id: Long): Program? = programMapper.find(id)?.let { programConverter.convert(it) }
+    fun find(id: Long): Program? = programMapper.find(id)?.toDomain()
 
-    fun findByName(name: String): Program? = programMapper.findByName(name)?.let { programConverter.convert(it) }
+    fun findByName(name: String): Program? = programMapper.findByName(name)?.toDomain()
 
-    fun findByExecutedFileId(executedFileId: Long): Program? =
-        programMapper.findByExecutedFileId(executedFileId)?.let { programConverter.convert(it) }
+    fun findByExecutedFileId(executedFileId: Long): Program? = programMapper.findByExecutedFileId(executedFileId)?.toDomain()
 
     fun updateStatusByExecutedFileId(
         executedFileId: Long,
@@ -106,12 +97,12 @@ class ProgramCommand(
 
     fun videoFiles(program: Program): List<CreatedFile> =
         createdFileMapper.selectByExecutedFileId(program.executedFileId).map {
-            createdFileConverter.convert(it)
+            it.toDomain()
         }
 
     fun hasTsFile(program: Program): Boolean {
         createdFileMapper.selectByExecutedFileId(program.executedFileId).forEach {
-            if (createdFileConverter.convert(it).isTs) {
+            if (it.toDomain().isTs) {
                 return true
             }
         }
@@ -121,7 +112,7 @@ class ProgramCommand(
     fun findDetail(id: Long): ProgramDetail? {
         val program: ProgramDto = programMapper.find(id) ?: return null
         val createdFiles: List<CreatedFileDto> = createdFileMapper.selectByExecutedFileId(program.executedFileId)
-        return programDetailConverter.convert(program, createdFiles)
+        return program.toProgramDetail(createdFiles)
     }
 
     @Transactional
@@ -134,11 +125,11 @@ class ProgramCommand(
         val createdFiles: List<CreatedFileDto> = createdFileMapper.selectByExecutedFileId(program.executedFileId)
 
         splittedFiles.forEach {
-            splittedFileCommand.delete(splittedFileConverter.convert(it), dryRun)
+            splittedFileCommand.delete(it.toDomain(), dryRun)
         }
 
         createdFiles.forEach {
-            createdFileCommand.delete(createdFileConverter.convert(it), dryRun)
+            createdFileCommand.delete(it.toDomain(), dryRun)
         }
 
         executedFileCommand.delete(executedFile, dryRun)
@@ -160,7 +151,7 @@ class ProgramCommand(
         createdFiles.forEach {
             val oldPath = Path.of(it.file.replace('\\', '/'))
             val newPath = directoryNameComponent.replaceWithGivenDirectoryName(oldPath, newDirectory)
-            createdFileCommand.move(createdFileConverter.convert(it), newPath.toString().replace('/', '\\'), dryRun)
+            createdFileCommand.move(it.toDomain(), newPath.toString().replace('/', '\\'), dryRun)
         }
 
         logger.info("Move created files, id=${program.id}, newDirectory=$newDirectory, program=$program")

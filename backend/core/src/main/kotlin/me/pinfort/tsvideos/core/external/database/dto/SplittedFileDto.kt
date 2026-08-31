@@ -1,5 +1,7 @@
 package me.pinfort.tsvideos.core.external.database.dto
 
+import me.pinfort.tsvideos.core.domain.SplittedFile
+
 data class SplittedFileDto(
     val id: Long,
     val executedFileId: Long,
@@ -13,4 +15,19 @@ data class SplittedFileDto(
         COMPRESS_SAVED,
         ENCODE_TASK_ADDED,
     }
+
+    fun toDomain(): SplittedFile =
+        SplittedFile(
+            id = id,
+            executedFileId = executedFileId,
+            file = file,
+            size = size,
+            duration = duration,
+            status =
+                when (status) {
+                    Status.REGISTERED -> SplittedFile.Status.REGISTERED
+                    Status.COMPRESS_SAVED -> SplittedFile.Status.COMPRESS_SAVED
+                    Status.ENCODE_TASK_ADDED -> SplittedFile.Status.ENCODE_TASK_ADDED
+                },
+        )
 }

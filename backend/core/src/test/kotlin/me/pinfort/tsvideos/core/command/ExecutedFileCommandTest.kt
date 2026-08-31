@@ -11,7 +11,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import me.pinfort.tsvideos.core.domain.ExecutedFile
 import me.pinfort.tsvideos.core.external.database.dto.ExecutedFileDto
-import me.pinfort.tsvideos.core.external.database.dto.converter.ExecutedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.ExecutedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import org.slf4j.Logger
@@ -20,7 +19,6 @@ import java.time.LocalDateTime
 class ExecutedFileCommandTest :
     ExpectSpec({
         lateinit var executedFileMapper: ExecutedFileMapper
-        lateinit var executedFileConverter: ExecutedFileConverter
         lateinit var logger: Logger
         lateinit var executedFileCommand: ExecutedFileCommand
 
@@ -55,21 +53,18 @@ class ExecutedFileCommandTest :
         beforeTest {
             clearAllMocks()
             executedFileMapper = mockk()
-            executedFileConverter = mockk()
             logger = mockk()
-            executedFileCommand = ExecutedFileCommand(executedFileMapper, executedFileConverter, logger)
+            executedFileCommand = ExecutedFileCommand(executedFileMapper, logger)
         }
 
         context("find") {
             expect("success") {
                 every { executedFileMapper.find(any()) } returns executedFileDto
-                every { executedFileConverter.convert(any()) } returns executedFile
 
                 executedFileCommand.find(1) shouldBe executedFile
 
                 verifySequence {
                     executedFileMapper.find(1)
-                    executedFileConverter.convert(executedFileDto)
                 }
             }
 
@@ -81,22 +76,17 @@ class ExecutedFileCommandTest :
                 verifySequence {
                     executedFileMapper.find(1)
                 }
-                verify(exactly = 0) {
-                    executedFileConverter.convert(any())
-                }
             }
         }
 
         context("findByFile") {
             expect("found") {
                 every { executedFileMapper.selectByFile(any()) } returns listOf(executedFileDto)
-                every { executedFileConverter.convert(any()) } returns executedFile
 
                 executedFileCommand.findByFile("file") shouldBe executedFile
 
                 verifySequence {
                     executedFileMapper.selectByFile("file")
-                    executedFileConverter.convert(executedFileDto)
                 }
             }
 
@@ -108,7 +98,6 @@ class ExecutedFileCommandTest :
                 verifySequence {
                     executedFileMapper.selectByFile("file")
                 }
-                verify(exactly = 0) { executedFileConverter.convert(any()) }
             }
         }
 
@@ -206,7 +195,7 @@ class ExecutedFileCommandTest :
                 executedFileCommand.delete(executedFile)
 
                 verifySequence {
-                    executedFileMapper.delete(1)
+                    executedFileMapper.delete(executedFile.id)
                     logger.info(any())
                 }
             }
@@ -219,9 +208,7 @@ class ExecutedFileCommandTest :
                 verifySequence {
                     logger.info(any())
                 }
-                verify(exactly = 0) {
-                    executedFileMapper.delete(1)
-                }
+                verify(exactly = 0) { executedFileMapper.delete(any()) }
             }
         }
     })

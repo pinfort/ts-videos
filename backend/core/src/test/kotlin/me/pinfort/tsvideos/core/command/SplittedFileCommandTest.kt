@@ -11,7 +11,6 @@ import io.mockk.verify
 import io.mockk.verifySequence
 import me.pinfort.tsvideos.core.domain.SplittedFile
 import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
-import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import org.slf4j.Logger
@@ -19,7 +18,6 @@ import org.slf4j.Logger
 class SplittedFileCommandTest :
     ExpectSpec({
         lateinit var splittedFileMapper: SplittedFileMapper
-        lateinit var splittedFileConverter: SplittedFileConverter
         lateinit var logger: Logger
         lateinit var splittedFileCommand: SplittedFileCommand
 
@@ -46,21 +44,18 @@ class SplittedFileCommandTest :
         beforeTest {
             clearAllMocks()
             splittedFileMapper = mockk()
-            splittedFileConverter = mockk()
             logger = mockk()
-            splittedFileCommand = SplittedFileCommand(splittedFileMapper, splittedFileConverter, logger)
+            splittedFileCommand = SplittedFileCommand(splittedFileMapper, logger)
         }
 
         context("selectByExecutedFileId") {
             expect("success") {
                 every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
-                every { splittedFileConverter.convert(any()) } returns splittedFile
 
                 splittedFileCommand.selectByExecutedFileId(1) shouldBe listOf(splittedFile)
 
                 verifySequence {
                     splittedFileMapper.selectByExecutedFileId(1)
-                    splittedFileConverter.convert(splittedFileDto)
                 }
             }
         }
@@ -68,13 +63,11 @@ class SplittedFileCommandTest :
         context("findByFile") {
             expect("success") {
                 every { splittedFileMapper.selectByFile("test.ts") } returns listOf(splittedFileDto)
-                every { splittedFileConverter.convert(any()) } returns splittedFile
 
                 splittedFileCommand.findByFile("test.ts") shouldBe splittedFile
 
                 verifySequence {
                     splittedFileMapper.selectByFile("test.ts")
-                    splittedFileConverter.convert(splittedFileDto)
                 }
             }
 
@@ -83,7 +76,9 @@ class SplittedFileCommandTest :
 
                 splittedFileCommand.findByFile("test.ts") shouldBe null
 
-                verify(exactly = 0) { splittedFileConverter.convert(any()) }
+                verifySequence {
+                    splittedFileMapper.selectByFile("test.ts")
+                }
             }
         }
 

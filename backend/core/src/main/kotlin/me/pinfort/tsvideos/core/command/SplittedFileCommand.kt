@@ -1,7 +1,6 @@
 package me.pinfort.tsvideos.core.command
 
 import me.pinfort.tsvideos.core.domain.SplittedFile
-import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.SplittedFileMapper
 import org.slf4j.Logger
@@ -10,14 +9,12 @@ import org.springframework.stereotype.Component
 @Component
 class SplittedFileCommand(
     private val splittedFileMapper: SplittedFileMapper,
-    private val splittedFileConverter: SplittedFileConverter,
     private val logger: Logger,
 ) {
     fun selectByExecutedFileId(executedFileId: Long): List<SplittedFile> =
-        splittedFileMapper.selectByExecutedFileId(executedFileId).map { splittedFileConverter.convert(it) }
+        splittedFileMapper.selectByExecutedFileId(executedFileId).map { it.toDomain() }
 
-    fun findByFile(file: String): SplittedFile? =
-        splittedFileMapper.selectByFile(file).firstOrNull()?.let { splittedFileConverter.convert(it) }
+    fun findByFile(file: String): SplittedFile? = splittedFileMapper.selectByFile(file).firstOrNull()?.toDomain()
 
     fun insert(
         executedFileId: Long,

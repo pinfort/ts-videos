@@ -19,10 +19,6 @@ import me.pinfort.tsvideos.core.domain.SplittedFile
 import me.pinfort.tsvideos.core.external.database.dto.CreatedFileDto
 import me.pinfort.tsvideos.core.external.database.dto.ProgramDto
 import me.pinfort.tsvideos.core.external.database.dto.SplittedFileDto
-import me.pinfort.tsvideos.core.external.database.dto.converter.CreatedFileConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.ProgramDetailConverter
-import me.pinfort.tsvideos.core.external.database.dto.converter.SplittedFileConverter
 import me.pinfort.tsvideos.core.external.database.mapper.CreatedFileMapper
 import me.pinfort.tsvideos.core.external.database.mapper.GeneratedKeyHolder
 import me.pinfort.tsvideos.core.external.database.mapper.ProgramMapper
@@ -36,16 +32,12 @@ class ProgramCommandTest :
     ExpectSpec({
 
         lateinit var programMapper: ProgramMapper
-        lateinit var programConverter: ProgramConverter
         lateinit var createdFileMapper: CreatedFileMapper
-        lateinit var createdFileConverter: CreatedFileConverter
-        lateinit var programDetailConverter: ProgramDetailConverter
         lateinit var executedFileCommand: ExecutedFileCommand
         lateinit var createdFileCommand: CreatedFileCommand
         lateinit var splittedFileMapper: SplittedFileMapper
         lateinit var logger: Logger
         lateinit var splittedFileCommand: SplittedFileCommand
-        lateinit var splittedFileConverter: SplittedFileConverter
         lateinit var directoryNameComponent: DirectoryNameComponent
         lateinit var programCommand: ProgramCommand
 
@@ -53,30 +45,22 @@ class ProgramCommandTest :
             clearAllMocks()
 
             programMapper = mockk<ProgramMapper>()
-            programConverter = mockk<ProgramConverter>()
             createdFileMapper = mockk<CreatedFileMapper>()
-            createdFileConverter = mockk<CreatedFileConverter>()
-            programDetailConverter = mockk<ProgramDetailConverter>()
             executedFileCommand = mockk<ExecutedFileCommand>()
             createdFileCommand = mockk<CreatedFileCommand>()
             splittedFileMapper = mockk<SplittedFileMapper>()
             logger = mockk<Logger>()
             splittedFileCommand = mockk<SplittedFileCommand>()
-            splittedFileConverter = mockk<SplittedFileConverter>()
             directoryNameComponent = mockk<DirectoryNameComponent>()
             programCommand =
                 ProgramCommand(
                     programMapper,
-                    programConverter,
                     createdFileMapper,
-                    createdFileConverter,
-                    programDetailConverter,
                     executedFileCommand,
                     createdFileCommand,
                     splittedFileMapper,
                     logger,
                     splittedFileCommand,
-                    splittedFileConverter,
                     directoryNameComponent,
                 )
         }
@@ -113,12 +97,13 @@ class ProgramCommandTest :
             CreatedFileDto(
                 id = 1,
                 splittedFileId = 2,
-                file = "file",
+                file = "file\\file1",
                 size = 3,
                 mime = "mime",
                 encoding = "encoding",
                 status = CreatedFileDto.Status.ENCODE_SUCCESS,
             )
+        val tsCreatedFileDto = createdFileDto.copy(mime = "video/vnd.dlna.mpeg-tts")
         val createdFile =
             CreatedFile(
                 id = 1,
@@ -179,7 +164,6 @@ class ProgramCommandTest :
         context("findByName") {
             expect("success") {
                 every { programMapper.findByName(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
 
                 val actual = programCommand.findByName("name")
 
@@ -187,7 +171,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.findByName("name")
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -207,13 +190,11 @@ class ProgramCommandTest :
         context("findByExecutedFileId") {
             expect("success") {
                 every { programMapper.findByExecutedFileId(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
 
                 programCommand.findByExecutedFileId(2) shouldBe program
 
                 verifySequence {
                     programMapper.findByExecutedFileId(2)
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -221,8 +202,6 @@ class ProgramCommandTest :
                 every { programMapper.findByExecutedFileId(any()) } returns null
 
                 programCommand.findByExecutedFileId(2) shouldBe null
-
-                verify(exactly = 0) { programConverter.convert(any()) }
             }
         }
 
@@ -257,7 +236,6 @@ class ProgramCommandTest :
                     1
                 }
                 every { programMapper.find(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
                 every { logger.info(any()) } just Runs
 
                 val actual = programCommand.insert("name", 2)
@@ -306,7 +284,6 @@ class ProgramCommandTest :
         context("selectByName") {
             expect("success") {
                 every { programMapper.selectByName(any(), any(), any()) } returns listOf(programDto)
-                every { programConverter.convert(any()) } returns program
 
                 val actual = programCommand.selectByName("test", 1, 2)
 
@@ -314,7 +291,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.selectByName("test", 1, 2)
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -334,7 +310,6 @@ class ProgramCommandTest :
         context("find") {
             expect("success") {
                 every { programMapper.find(any()) } returns programDto
-                every { programConverter.convert(any()) } returns program
 
                 val actual = programCommand.find(1)
 
@@ -342,7 +317,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.find(1)
-                    programConverter.convert(programDto)
                 }
             }
 
@@ -362,7 +336,6 @@ class ProgramCommandTest :
         context("videoFiles") {
             expect("success") {
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { createdFileConverter.convert(any()) } returns createdFile
 
                 val testProgram = program.copy(executedFileId = 1)
 
@@ -372,7 +345,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     createdFileMapper.selectByExecutedFileId(1)
-                    createdFileConverter.convert(createdFileDto)
                 }
             }
 
@@ -393,8 +365,7 @@ class ProgramCommandTest :
 
         context("hasTsFile") {
             expect("success") {
-                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { createdFileConverter.convert(any()).isTs } returns true
+                every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(tsCreatedFileDto)
 
                 val actual = programCommand.hasTsFile(program)
 
@@ -403,7 +374,6 @@ class ProgramCommandTest :
 
             expect("successNoTs") {
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { createdFileConverter.convert(any()).isTs } returns false
 
                 val actual = programCommand.hasTsFile(program)
 
@@ -416,17 +386,12 @@ class ProgramCommandTest :
                 val actual = programCommand.hasTsFile(program)
 
                 actual shouldBe false
-
-                verify(exactly = 0) {
-                    createdFileConverter.convert(any())
-                }
             }
         }
 
         context("findDetail") {
             expect("success") {
                 every { programMapper.find(any()) } returns programDto
-                every { programDetailConverter.convert(any(), any()) } returns programDetail
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
 
                 val actual = programCommand.findDetail(1)
@@ -435,7 +400,7 @@ class ProgramCommandTest :
 
                 verifySequence {
                     programMapper.find(1)
-                    programDetailConverter.convert(programDto, listOf(createdFileDto))
+                    createdFileMapper.selectByExecutedFileId(programDto.executedFileId)
                 }
             }
 
@@ -457,11 +422,9 @@ class ProgramCommandTest :
                 every { executedFileCommand.find(any()) } returns executedFile
                 every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { splittedFileConverter.convert(any()) } returns splittedFile
                 every { splittedFileCommand.delete(any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
-                every { createdFileConverter.convert(any()) } returns createdFile
                 every { executedFileCommand.delete(any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -471,9 +434,7 @@ class ProgramCommandTest :
                     executedFileCommand.find(program.executedFileId)
                     splittedFileMapper.selectByExecutedFileId(executedFile.id)
                     createdFileMapper.selectByExecutedFileId(program.executedFileId)
-                    splittedFileConverter.convert(splittedFileDto)
                     splittedFileCommand.delete(splittedFile, false)
-                    createdFileConverter.convert(createdFileDto)
                     createdFileCommand.delete(createdFile, false)
                     executedFileCommand.delete(executedFile, false)
                     programMapper.deleteById(program.id)
@@ -499,11 +460,9 @@ class ProgramCommandTest :
                 every { executedFileCommand.find(any()) } returns executedFile
                 every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { splittedFileConverter.convert(any()) } returns splittedFile
                 every { splittedFileCommand.delete(any(), any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
-                every { createdFileConverter.convert(any()) } returns createdFile
                 every { executedFileCommand.delete(any(), any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -513,9 +472,7 @@ class ProgramCommandTest :
                     executedFileCommand.find(program.executedFileId)
                     splittedFileMapper.selectByExecutedFileId(executedFile.id)
                     createdFileMapper.selectByExecutedFileId(program.executedFileId)
-                    splittedFileConverter.convert(splittedFileDto)
                     splittedFileCommand.delete(splittedFile, true)
-                    createdFileConverter.convert(createdFileDto)
                     createdFileCommand.delete(createdFile, true)
                     executedFileCommand.delete(executedFile, true)
                     logger.info(any())
@@ -529,11 +486,9 @@ class ProgramCommandTest :
                 every { executedFileCommand.find(any()) } returns executedFile
                 every { splittedFileMapper.selectByExecutedFileId(any()) } returns listOf(splittedFileDto)
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { splittedFileConverter.convert(any()) } returns splittedFile
                 every { splittedFileCommand.delete(any(), any()) } just Runs
                 every { logger.info(any()) } just Runs
                 every { createdFileCommand.delete(any(), any()) } throws RuntimeException("error")
-                every { createdFileConverter.convert(any()) } returns createdFile
                 every { executedFileCommand.delete(any(), any()) } just Runs
                 every { programMapper.deleteById(any()) } just Runs
 
@@ -545,9 +500,7 @@ class ProgramCommandTest :
                     executedFileCommand.find(program.executedFileId)
                     splittedFileMapper.selectByExecutedFileId(executedFile.id)
                     createdFileMapper.selectByExecutedFileId(program.executedFileId)
-                    splittedFileConverter.convert(splittedFileDto)
                     splittedFileCommand.delete(splittedFile, true)
-                    createdFileConverter.convert(createdFileDto)
                     createdFileCommand.delete(createdFile, true)
                 }
                 verify(exactly = 0) {
@@ -561,7 +514,6 @@ class ProgramCommandTest :
         context("moveCreatedFiles") {
             expect("success") {
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { createdFileConverter.convert(any()) } returns createdFile
                 every { createdFileCommand.move(any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
                 every { logger.info(any()) } just Runs
                 every { directoryNameComponent.replaceWithGivenDirectoryName(any(), any()) } returns Path.of("newPath")
@@ -570,7 +522,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     createdFileMapper.selectByExecutedFileId(program.executedFileId)
-                    createdFileConverter.convert(createdFileDto)
                     createdFileCommand.move(createdFile, "newPath")
                     logger.info(any())
                 }
@@ -578,7 +529,6 @@ class ProgramCommandTest :
 
             expect("dryRun") {
                 every { createdFileMapper.selectByExecutedFileId(any()) } returns listOf(createdFileDto)
-                every { createdFileConverter.convert(any()) } returns createdFile
                 every { createdFileCommand.move(any(), any(), any()) } returns SambaClient.NasType.ORIGINAL_STORE_NAS
                 every { logger.info(any()) } just Runs
                 every { directoryNameComponent.replaceWithGivenDirectoryName(any(), any()) } returns Path.of("newPath")
@@ -587,7 +537,6 @@ class ProgramCommandTest :
 
                 verifySequence {
                     createdFileMapper.selectByExecutedFileId(program.executedFileId)
-                    createdFileConverter.convert(createdFileDto)
                     createdFileCommand.move(createdFile, "newPath", true)
                     logger.info(any())
                 }
