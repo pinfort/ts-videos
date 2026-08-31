@@ -25,7 +25,7 @@ class PathProcessingRunner(
             return
         }
 
-        logger.info("Processing path:$path")
+        logger.info("Processing, path=$path")
 
         resolveFiles(target).forEach { file ->
             try {
