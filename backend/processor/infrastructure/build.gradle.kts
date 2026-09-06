@@ -9,6 +9,7 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation("org.springframework.boot:spring-boot-starter")
+    implementation("me.pinfort:tsselect:1.0.0")
 
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)

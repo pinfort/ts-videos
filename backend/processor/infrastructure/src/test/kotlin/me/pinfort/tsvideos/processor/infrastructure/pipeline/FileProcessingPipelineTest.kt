@@ -27,9 +27,9 @@ import me.pinfort.tsvideos.core.exception.TsVideosException
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
 import me.pinfort.tsvideos.core.external.tool.AmatsukazeAddTaskClient
-import me.pinfort.tsvideos.core.external.tool.DropChkClient
 import me.pinfort.tsvideos.core.external.tool.DurationProbeClient
 import me.pinfort.tsvideos.core.external.tool.TsSplitterClient
+import me.pinfort.tsvideos.processor.infrastructure.external.tsselect.TsSelectClient
 import org.slf4j.Logger
 import java.io.File
 import java.nio.file.Files
@@ -41,7 +41,7 @@ class FileProcessingPipelineTest :
         lateinit var splittedFileCommand: SplittedFileCommand
         lateinit var createdFileCommand: CreatedFileCommand
         lateinit var programCommand: ProgramCommand
-        lateinit var dropChkClient: DropChkClient
+        lateinit var tsSelectClient: TsSelectClient
         lateinit var tsSplitterClient: TsSplitterClient
         lateinit var amatsukazeAddTaskClient: AmatsukazeAddTaskClient
         lateinit var durationProbeClient: DurationProbeClient
@@ -52,7 +52,6 @@ class FileProcessingPipelineTest :
 
         val properties =
             ProcessorToolConfigurationProperties(
-                tsDropChkPath = "tsDropChk",
                 tsSplitterPath = "tsSplitter",
                 amatsukazeAddTaskPath = "amatsukaze",
                 ffprobePath = "ffprobe",
@@ -71,7 +70,7 @@ class FileProcessingPipelineTest :
             splittedFileCommand = mockk()
             createdFileCommand = mockk()
             programCommand = mockk()
-            dropChkClient = mockk()
+            tsSelectClient = mockk()
             tsSplitterClient = mockk()
             amatsukazeAddTaskClient = mockk()
             durationProbeClient = mockk()
@@ -85,7 +84,7 @@ class FileProcessingPipelineTest :
                     splittedFileCommand = splittedFileCommand,
                     createdFileCommand = createdFileCommand,
                     programCommand = programCommand,
-                    dropChkClient = dropChkClient,
+                    tsSelectClient = tsSelectClient,
                     tsSplitterClient = tsSplitterClient,
                     amatsukazeAddTaskClient = amatsukazeAddTaskClient,
                     durationProbeClient = durationProbeClient,
@@ -130,7 +129,7 @@ class FileProcessingPipelineTest :
                 lateinit var splitFile: File
 
                 every { programCommand.findByName(original.name) } returns null
-                every { dropChkClient.check(any(), any()) } returns 0
+                every { tsSelectClient.check(any()) } returns 0
                 every { durationProbeClient.probe(any(), any()) } returns 100.0
                 every {
                     executedFileCommand.insert(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -210,7 +209,7 @@ class FileProcessingPipelineTest :
                 val result = fileProcessingPipeline.processFile(original)
 
                 result shouldBe FileProcessingPipeline.Result.SKIPPED_ALREADY_REGISTERED
-                verify(exactly = 0) { dropChkClient.check(any(), any()) }
+                verify(exactly = 0) { tsSelectClient.check(any()) }
             }
         }
 
@@ -234,7 +233,7 @@ class FileProcessingPipelineTest :
                 val executedFile = executedFileFixture(original)
 
                 every { programCommand.findByName(original.name) } returns null
-                every { dropChkClient.check(any(), any()) } returns 0
+                every { tsSelectClient.check(any()) } returns 0
                 every { durationProbeClient.probe(any(), any()) } returns 100.0
                 every {
                     executedFileCommand.insert(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -267,7 +266,7 @@ class FileProcessingPipelineTest :
                 lateinit var splitFile: File
 
                 every { programCommand.findByName(original.name) } returns null
-                every { dropChkClient.check(any(), any()) } returns 0
+                every { tsSelectClient.check(any()) } returns 0
                 every { durationProbeClient.probe(any(), any()) } returns 100.0
                 every {
                     executedFileCommand.insert(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -317,7 +316,7 @@ class FileProcessingPipelineTest :
                 lateinit var mainSplittedFile: SplittedFile
 
                 every { programCommand.findByName(original.name) } returns null
-                every { dropChkClient.check(any(), any()) } returns 0
+                every { tsSelectClient.check(any()) } returns 0
                 every { durationProbeClient.probe(any(), any()) } returns 100.0
                 every {
                     executedFileCommand.insert(any(), any(), any(), any(), any(), any(), any(), any(), any())
