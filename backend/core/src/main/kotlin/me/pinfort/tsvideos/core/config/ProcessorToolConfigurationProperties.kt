@@ -4,7 +4,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "processor-tool")
 data class ProcessorToolConfigurationProperties(
-    val tsDropChkPath: String,
     val tsSplitterPath: String,
     val amatsukazeAddTaskPath: String,
     val ffprobePath: String,

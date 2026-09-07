@@ -14,7 +14,6 @@ class AmatsukazeAddTaskClientTest :
         val shellComponent = mockk<ShellComponent>()
         val properties =
             ProcessorToolConfigurationProperties(
-                tsDropChkPath = "C:\\tools\\tsDropChkx64.exe",
                 tsSplitterPath = "C:\\tools\\TsSplitter.exe",
                 amatsukazeAddTaskPath = "C:\\tools\\AmatsukazeAddTask.exe",
                 ffprobePath = "ffprobe",

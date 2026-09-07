@@ -16,16 +16,16 @@ import me.pinfort.tsvideos.core.exception.TsVideosException
 import me.pinfort.tsvideos.core.external.samba.NasComponent
 import me.pinfort.tsvideos.core.external.samba.SambaClient
 import me.pinfort.tsvideos.core.external.tool.AmatsukazeAddTaskClient
-import me.pinfort.tsvideos.core.external.tool.DropChkClient
 import me.pinfort.tsvideos.core.external.tool.DurationProbeClient
 import me.pinfort.tsvideos.core.external.tool.TsSplitterClient
+import me.pinfort.tsvideos.processor.infrastructure.external.tsselect.TsSelectClient
 import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import java.io.File
 import kotlin.math.ceil
 
 /**
- * DropChk -> TsSplitter -> CompressAndSave -> AmatsukazeAddTask の4段パイプライン。
+ * DropCheck(tsselect) -> TsSplitter -> CompressAndSave -> AmatsukazeAddTask の4段パイプライン。
  * 各段は失敗すると自身とそれ以前の段を逆順にロールバックしてから例外を再送出する。
  */
 @Component
@@ -34,7 +34,7 @@ class FileProcessingPipeline(
     private val splittedFileCommand: SplittedFileCommand,
     private val createdFileCommand: CreatedFileCommand,
     private val programCommand: ProgramCommand,
-    private val dropChkClient: DropChkClient,
+    private val tsSelectClient: TsSelectClient,
     private val tsSplitterClient: TsSplitterClient,
     private val amatsukazeAddTaskClient: AmatsukazeAddTaskClient,
     private val durationProbeClient: DurationProbeClient,
@@ -117,7 +117,7 @@ class FileProcessingPipeline(
 
         programCommand.findByName(file.name)?.let { return DropChkOutcome.AlreadyExists(it) }
 
-        val drops = dropChkClient.check(file)
+        val drops = tsSelectClient.check(file)
         val fileName = FileName.fromFileNameString(file.name)
         val duration = durationProbeClient.probe(file)
 

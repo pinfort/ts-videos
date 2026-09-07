@@ -17,7 +17,6 @@ class DurationProbeClientTest :
         val logger = mockk<Logger>(relaxed = true)
         val properties =
             ProcessorToolConfigurationProperties(
-                tsDropChkPath = "tsDropChk",
                 tsSplitterPath = "tsSplitter",
                 amatsukazeAddTaskPath = "amatsukaze",
                 ffprobePath = "ffprobe",

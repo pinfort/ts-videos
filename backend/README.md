@@ -31,7 +31,7 @@ DB や NAS の接続先を変える場合は、以下の環境変数で上書き
 
 `tvpcli` は2つのサブコマンドを持ちます。
 
-- `process <パス>...` — 録画ファイル（または `.m2ts` を含むディレクトリ）を DropChk → TsSplitter → 圧縮・NAS アップロード → Amatsukaze タスク登録 のパイプラインで処理します。
+- `process <パス>...` — 録画ファイル（または `.m2ts` を含むディレクトリ）をドロップチェック(tsselect) → TsSplitter → 圧縮・NAS アップロード → Amatsukaze タスク登録 のパイプラインで処理します。
 - `after-encode` — Amatsukaze のエンコード実行後バッチから呼び出します。エンコード済みファイルを `created_file` として登録し、NAS へアップロードしたうえで元ファイルを削除し、番組を `COMPLETED` にします。
 
 どちらも `-d` / `--dry-run` で書き込みを行わずに実行できます。
